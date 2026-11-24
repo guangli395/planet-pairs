@@ -48,6 +48,9 @@ async function browserPreload(current: number): Promise<AssetManifest> {
 
 async function workerPreload(current: number): Promise<AssetManifest> {
   const registration = await navigator.serviceWorker.register(new URL('./sw.js', document.baseURI), {scope: './', updateViaCache: 'none'});
+  // Existing registrations can resolve before their background update check.
+  // Wait for that check so new HTML never warms an old worker's asset list.
+  await registration.update().catch(() => {});
   if (current !== attempt) throw new Error('Preparation replaced');
   const worker = registration.installing ?? registration.waiting ?? registration.active;
   if (!worker) throw new Error('No cache worker');
