@@ -90,3 +90,15 @@ body[data-mobile-effects='true'] .foil-holo { filter:none; }
 body[data-mobile-effects='true'] .foil-holo::after { filter:none; opacity:.65; }
 body[data-mobile-effects='true'] .foil-clearcoat::before { opacity:.75; }
 body[data-mobile-effects='true'] .char-pop .char-body { filter:drop-shadow(0 3px 4px #0005); }
+
+/* Identical optics; only cached gradient layers move. Keep all foil/color layers. */
+.gpu-optics .foil-glare { background:none; overflow:hidden; }
+.gpu-optics .foil-holo,.gpu-optics .foil-glare { will-change:opacity; }
+.gpu-optics .optic-radial { position:absolute; left:-50%; top:-50%; width:200%; height:200%; background:radial-gradient(circle closest-side at 50% 50%,rgba(255,255,255,.8),rgba(255,255,255,.12) 38%,rgba(0,0,0,.28)); transform-origin:50% 50%; will-change:transform; }
+.gpu-optics .foil-clearcoat { background:linear-gradient(rgba(255,255,255,.2),transparent 14%); overflow:hidden; }
+.gpu-optics .foil-clearcoat::before { display:none; }
+.gpu-optics .optic-gloss { position:absolute; z-index:0; left:10%; top:26%; width:80%; height:48%; background:radial-gradient(ellipse closest-side at 50% 50%,#fff,transparent); will-change:transform,opacity; }
+.gpu-optics .optic-sweep-mask { position:absolute; z-index:1; inset:0; overflow:hidden; mask:linear-gradient(#000 32%,transparent 78%); }
+.gpu-optics .optic-sweep { position:absolute; inset:0 auto 0 0; width:220%; background:linear-gradient(112deg,transparent 44%,rgba(255,255,255,.36) 44.4%,rgba(255,255,255,.11) 52%,transparent 52.4%,transparent 54%,rgba(255,255,255,.2) 54.3%,rgba(255,255,255,.04) 56.4%,transparent 56.7%); will-change:transform; }
+body[data-mobile-effects='true'] .gpu-optics .optic-sweep-mask { opacity:.75; }
+.pack > .pouch-face { contain:paint; will-change:clip-path; }

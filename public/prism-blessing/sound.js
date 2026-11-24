@@ -340,7 +340,11 @@ export function createSoundController(options = {}) {
       volume = nextVolume; flipWhoosh = nextWhoosh;
       api?.setMuted(muted);
     },
-    setMuted(value) { muted=Boolean(value); api?.setMuted(muted); },
+    setMuted(value) {
+      const next = Boolean(value);
+      if (next === muted) return;
+      muted = next; api?.setMuted(muted);
+    },
     get isMuted() {
       return muted;
     },

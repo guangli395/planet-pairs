@@ -2,6 +2,7 @@
 // Planet-pairs: deterministic six blessings, parent-owned selection and no local storage.
 import { PACK_BRAND, PACK_THEMES, RARITY_META, MASCOT_CONFIG, CARD_POOL } from './cards-config.js';
 import { createSoundController } from './sound.js';
+import { createOptics } from './optics.js';
 
 const $ = (sel) => document.querySelector(sel);
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
@@ -499,10 +500,15 @@ let pointerShakeEnergy = 0;
 let sparkCarry = 0;
 let packWidth = 280;
 let packHeight = 406;
+let cardWidth = 235, cardHeight = 329;
 
 function measureStage() {
   packWidth = pack.offsetWidth || 280;
   packHeight = pack.offsetHeight || 406;
+  if (cards.length) {
+    const style = getComputedStyle(cards[0].el);
+    cardWidth = parseFloat(style.width); cardHeight = parseFloat(style.height);
+  }
   const dpr = Math.min(isCoarsePointer ? 1.5 : 2, window.devicePixelRatio || 1);
   confettiCanvas.width = Math.floor(window.innerWidth * dpr);
   confettiCanvas.height = Math.floor(window.innerHeight * dpr);
@@ -1060,7 +1066,7 @@ function buildCardMarkup(cardDef, { foilVariant = null, showNew = false } = {}) 
 }
 
 function computeFanSlot(cardObj) {
-  const baseW = cardObj.el.offsetWidth || packWidth * 0.84;
+  const baseW = Math.round(cardWidth) || packWidth * 0.84;
   const targetW = Math.min((window.innerWidth - 42) / 3, (window.innerHeight - 40) / 3.15, 128);
   const col = cardObj.slot % 3 - 1;
   const row = Math.floor(cardObj.slot / 3) - 0.5;
@@ -1150,6 +1156,7 @@ function flipCard(cardObj, { silentBanner = false } = {}) {
 }
 
 function spawnPackCards() {
+  for (const c of cards) c.el.remove();
   zoomedCard = null;
   dismissShowcaseCard();
 
@@ -1182,6 +1189,7 @@ function spawnPackCards() {
       idx,
       slot: idx,
       faceEl: el.querySelector('.card-face'),
+      optics: createOptics(el.querySelector('.card-face'), cachedStyle),
       newBadgeEl: el.querySelector('.new-badge'),
       eyes: [...el.querySelectorAll('.rig-eye')],
       nextBlink: clockSec + rand(0.8, 3.2),
@@ -1226,6 +1234,9 @@ function spawnPackCards() {
   });
 
   for (const c of cards.slice().reverse()) scene.append(c.el);
+  const dimensions = getComputedStyle(cards[0].el);
+  cardWidth = parseFloat(dimensions.width); cardHeight = parseFloat(dimensions.height);
+  for (const c of cards) c.optics?.(cardWidth, cardHeight, 50, 50, 0);
 
   if (prefersReducedMotion) {
     for (const c of cards) {
@@ -1674,7 +1685,15 @@ function triggerPackBurst() {
     triggerStageImpact(currentPackRoll.isGodPack ? 'secret' : 'ultra');
   }
 
-  spawnPackCards();
+  if (prefersReducedMotion || cards.length !== 6 || cards.some(c => c.phase !== 'prepared')) spawnPackCards();
+  else {
+    const y = packPose.y.x + packHeight * ((Math.max(...tearVertices.map(q => q[1])) + 39) / 100 - .5);
+    for (const c of cards) {
+      c.phase = 'inside';
+      const values = {x:packPose.x.x, y, z:3.5-c.idx*1.75, rx:0, ry:0, rz:packPose.rz.x, s:.94};
+      for (const [key, value] of Object.entries(values)) c.pose[key].x = c.pose[key].to = value;
+    }
+  }
   window.parent.postMessage({channel:'planet-blessing',type:'opening'},location.origin);
   sound.call('setRip', 0);
   sound.call('burst', currentPackRoll.isGodPack);
@@ -2136,6 +2155,7 @@ function tick(nowMs) {
   pointer.tapped = false;
 
   for (const c of cards) {
+    if (c.phase === 'prepared') continue;
     const p = c.pose;
     const sinceOpen = clockSec - openedAtSec;
 
@@ -2236,9 +2256,12 @@ function tick(nowMs) {
       const nx = clamp(tiltRy / 24, -1, 1);
       const ny = clamp(rx / 24, -1, 1);
       if (paintSurface) {
-        cachedStyle(c.faceEl, '--px', (50 + nx * 50).toFixed(1));
-        cachedStyle(c.faceEl, '--py', (50 - ny * 50).toFixed(1));
-        cachedStyle(c.faceEl, '--hyp', Math.min(1, Math.hypot(nx, ny)).toFixed(3));
+        const px = Number((50 + nx * 50).toFixed(1)), py = Number((50 - ny * 50).toFixed(1));
+        const hyp = Number(Math.min(1, Math.hypot(nx, ny)).toFixed(3));
+        if (c.optics) c.optics(cardWidth, cardHeight, px, py, hyp);
+        else {
+          cachedStyle(c.faceEl, '--px', String(px)); cachedStyle(c.faceEl, '--py', String(py)); cachedStyle(c.faceEl, '--hyp', String(hyp));
+        }
       }
     }
   }
@@ -2392,6 +2415,9 @@ function tick(nowMs) {
 
 measureStage();
 enterFreshPack();
+// Construct and measure before the tear; keep the exact burst/ejection timing.
+spawnPackCards();
+for (const c of cards) { c.phase = 'prepared'; c.el.style.visibility = 'hidden'; }
 frameRequest = requestAnimationFrame(tick);
 window.addEventListener('pagehide', () => { stopped = true; cancelAnimationFrame(frameRequest); sound.call('setRip', 0); });
 window.addEventListener('pageshow', () => {
