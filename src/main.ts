@@ -8,7 +8,7 @@ import { animateCardFlip } from './card-flip';
 import { HiddenSlices, clipCutSegment, packCutLine, type CutBounds } from './hidden-slices';
 import { HiddenPackVisual } from './hidden-pack';
 import { BLESSINGS, PLANETS, createRun, drawOne, settle, needsSettlement, continueRun, type Mode, type Blessing, type Run, type GameEvent } from './rules';
-import { createBoard, type BoardScene } from './board';
+import type { createBoard, BoardScene } from './board';
 import { freshStore, loadStore, refreshDay, saveStore as saveGameStore, type SetupDraft, type Store } from './store';
 import { showRewardEffect, type RewardEffect } from './effects';
 import { SettlementPlayback } from './settlement-playback';
@@ -27,6 +27,10 @@ const openingRuns = new WeakSet<Run>();
 let run: Run | null = null;
 let scene: BoardScene;
 let gameReady: ReturnType<typeof createBoard>;
+let boardModule: Promise<typeof import('./board')> | undefined;
+function loadBoardModule() {
+  return boardModule ??= import('./board').catch(error => { boardModule = undefined; throw error; });
+}
 let busy = false;
 let automatic = true;
 let display: Run | null = null;
@@ -184,6 +188,8 @@ function startMode(mode: Mode) {
   setup(mode, mode === 'stage' ? store.unlocked : 1);
 }
 function setup(mode: Mode, stage: number) {
+  // Download the engine during preparation instead of blocking the homepage.
+  void loadBoardModule().catch(() => {});
   run = null; setupMode = mode; setupStage = stage;
   if (!draft || draft.mode !== mode || draft.stage !== stage) {
     draft = { id: crypto.randomUUID(), mode, stage, step: 'blessing', blessing: null, pick: 0, lucky: [], cards: 20, cardAds: 0 };
@@ -290,12 +296,16 @@ async function enterGame() {
   const before = structuredClone(current);
   if (opening) before.remaining = 0;
   updateHud(before);
-  if (!gameReady) gameReady = createBoard($('phaser-board'));
-  scene = (await gameReady).scene;
-  scene.setTheme(universe());
-  scene.render(current);
-  message(universe().copy.welcome);
   try {
+    if (!gameReady) {
+      message('正在准备棋盘…');
+      const {createBoard} = await loadBoardModule();
+      gameReady = createBoard($('phaser-board'));
+    }
+    scene = (await gameReady).scene;
+    scene.setTheme(universe());
+    scene.render(current);
+    message(universe().copy.welcome);
     if (opening) {
       openingRuns.add(current);
       const total = current.remaining;
@@ -313,6 +323,11 @@ async function enterGame() {
       await Promise.allSettled(visuals);
       message('起始牌已就位，可以开始发牌');
     }
+  } catch (error) {
+    console.error('Board failed to load', error);
+    modal(`${heading('✧', '棋盘暂未准备好', '网络可能有些慢，请重试继续本局')}<button class="wide-button" id="board-load-retry">重新加载</button>`);
+    $('board-load-retry').onclick = () => { void enterGame(); };
+    return;
   } finally { updateHud(run!); setBusy(false); }
   updateEnergyUI();
   if (run!.status !== 'ready') endModal();
