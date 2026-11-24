@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="780" height="1688" viewBox="0 0 390 844">
+ <defs>
+  <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#1c2b53"/><stop offset="1" stop-color="#090f27"/></linearGradient>
+  <linearGradient id="panel" x2="0" y2="1"><stop stop-color="#283b62"/><stop offset="1" stop-color="#192741"/></linearGradient>
+  <linearGradient id="purple" x2="0" y2="1"><stop stop-color="#af91fb"/><stop offset="1" stop-color="#7660dc"/></linearGradient>
+  <linearGradient id="teal" x2="0" y2="1"><stop stop-color="#69d7ce"/><stop offset="1" stop-color="#319baf"/></linearGradient>
+  <g id="avatar"><circle r="22" fill="#344765"/><circle cy="-5" r="7" fill="#8697ae"/><path d="M-12 14Q-12 2 0 2Q12 2 12 14" fill="#8697ae"/></g>
+  <g id="crown"><path d="M-13 0L-10 12H10L13 0L5 5L0-4L-5 5Z" fill="#f8d482"/></g>
+ </defs>
+ <rect width="390" height="844" rx="26" fill="url(#sky)"/>
+ <g fill="#bad1f4" opacity=".55"><circle cx="27" cy="70" r="1"/><circle cx="67" cy="27" r="1.3"/><circle cx="295" cy="20" r="1"/><circle cx="328" cy="106" r="1.7"/><circle cx="22" cy="590" r="1"/><circle cx="369" cy="652" r="1.2"/><circle cx="41" cy="806" r="1.5"/><circle cx="328" cy="814" r="1"/></g>
+ <circle cx="58" cy="89" r="21" fill="#7378bc" opacity=".32"/>
+ <ellipse cx="58" cy="89" rx="33" ry="7" transform="rotate(-24 58 89)" fill="none" stroke="#9d95d8" opacity=".5"/>
+ <g font-family="Microsoft YaHei, sans-serif" text-anchor="middle" fill="#f1f4ff">
+  <text x="195" y="52" font-size="27" font-weight="bold">星球翻翻碰</text>
+  <text x="195" y="77" font-size="11" fill="#aebedb" letter-spacing="2">翻出惊喜 · 碰出好运</text>
+  <rect x="337" y="25" width="32" height="32" rx="11" fill="#2c3e60"/><text x="353" y="47" font-size="19">⚙</text>
+  <rect x="20" y="119" width="350" height="216" rx="22" fill="url(#panel)" stroke="#536078"/>
+  <rect x="37" y="137" width="4" height="19" rx="2" fill="#f3cc7d"/>
+  <text x="51" y="152" text-anchor="start" font-size="17" font-weight="bold" fill="#f6d99b">闯关榜</text>
+  <text x="350" y="151" text-anchor="end" font-size="11" fill="#b2c1dc">查看 ›</text>
+  <text x="51" y="172" text-anchor="start" font-size="10" fill="#adbbd2">谁能闯过更多关</text>
+  <use href="#crown" x="195" y="185"/>
+  <use href="#avatar" x="87" y="235"/>
+  <use href="#avatar" x="195" y="222"/>
+  <use href="#avatar" x="303" y="235"/>
+  <g stroke-width="2" fill="none"><circle cx="87" cy="235" r="24" stroke="#b4c3d8"/><circle cx="195" cy="222" r="26" stroke="#edca80"/><circle cx="303" cy="235" r="24" stroke="#d6a186"/></g>
+  <g font-size="10" font-weight="bold"><circle cx="87" cy="257" r="9" fill="#879db6"/><text x="87" y="261">2</text><circle cx="195" cy="247" r="9" fill="#a48343"/><text x="195" y="251">1</text><circle cx="303" cy="257" r="9" fill="#966d57"/><text x="303" y="261">3</text></g>
+  <g font-size="12"><text x="87" y="283">虚位以待</text><text x="195" y="277">虚位以待</text><text x="303" y="283">虚位以待</text></g>
+  <g fill="#c1cee1" font-size="11"><text x="87" y="306">— 关</text><text x="195" y="300" fill="#f6d99b">— 关</text><text x="303" y="306">— 关</text></g>
+  <rect x="20" y="351" width="350" height="216" rx="22" fill="url(#panel)" stroke="#3e6472"/>
+  <rect x="37" y="369" width="4" height="19" rx="2" fill="#7be1d4"/>
+  <text x="51" y="384" text-anchor="start" font-size="17" font-weight="bold" fill="#94ede1">无限榜</text>
+  <text x="350" y="383" text-anchor="end" font-size="11" fill="#b2c1dc">查看 ›</text>
+  <text x="51" y="404" text-anchor="start" font-size="10" fill="#adbbd2">单局收集，挑战最高纪录</text>
+  <use href="#crown" x="195" y="417"/>
+  <use href="#avatar" x="87" y="467"/>
+  <use href="#avatar" x="195" y="454"/>
+  <use href="#avatar" x="303" y="467"/>
+  <g stroke-width="2" fill="none"><circle cx="87" cy="467" r="24" stroke="#b4c3d8"/><circle cx="195" cy="454" r="26" stroke="#edca80"/><circle cx="303" cy="467" r="24" stroke="#d6a186"/></g>
+  <g font-size="10" font-weight="bold"><circle cx="87" cy="489" r="9" fill="#879db6"/><text x="87" y="493">2</text><circle cx="195" cy="479" r="9" fill="#a48343"/><text x="195" y="483">1</text><circle cx="303" cy="489" r="9" fill="#966d57"/><text x="303" y="493">3</text></g>
+  <g font-size="12"><text x="87" y="515">虚位以待</text><text x="195" y="509">虚位以待</text><text x="303" y="515">虚位以待</text></g>
+  <g fill="#c1cee1" font-size="11"><text x="87" y="538">— 张</text><text x="195" y="532" fill="#94ede1">— 张</text><text x="303" y="538">— 张</text></g>
+  <rect x="28" y="589" width="334" height="42" rx="14" fill="#1b2a47"/>
+  <text x="109" y="615" font-size="12" fill="#c1cce0">闯关纪录 — 关</text><path d="M195 601V619" stroke="#3b4a66"/><text x="280" y="615" font-size="12" fill="#c1cce0">无限最佳 — 张</text>
+  <rect x="24" y="654" width="165" height="89" rx="21" fill="url(#purple)" stroke="#c5b0ff"/>
+  <text x="106" y="691" font-size="22" font-weight="bold">开始游戏</text><text x="106" y="718" font-size="12" fill="#ede4ff">闯关模式</text>
+  <rect x="201" y="654" width="165" height="89" rx="21" fill="url(#teal)" stroke="#9de4df"/>
+  <text x="283" y="691" font-size="22" font-weight="bold">无限模式</text><text x="283" y="718" font-size="12" fill="#e2fffa">今日剩余 3 次</text>
+  <rect x="204" y="756" width="159" height="32" rx="16" fill="#243d50"/>
+  <rect x="217" y="766" width="15" height="12" rx="3" fill="none" stroke="#9be7dd"/><path d="M222 769L227 772L222 775Z" fill="#9be7dd"/>
+  <text x="294" y="777" font-size="11" fill="#aeece2">看广告，机会 +1</text>
+  <text x="106" y="777" font-size="11" fill="#aebedb">翻卡规则</text>
+  <text x="195" y="824" font-size="10" fill="#94a4c0">界面示意 · 榜单席位暂为空</text>
+ </g>
+</svg>

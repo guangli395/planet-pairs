@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+ <defs><radialGradient id="surface" cx="31%" cy="23%" r="83%"><stop stop-color="#d7fff0"/><stop offset=".42" stop-color="#6cdbc0"/><stop offset=".85" stop-color="#248b98"/><stop offset="1" stop-color="#29294b"/></radialGradient><radialGradient id="halo"><stop stop-color="#6cdbc0" stop-opacity=".28"/><stop offset="1" stop-color="#6cdbc0" stop-opacity="0"/></radialGradient><clipPath id="planet"><circle cx="128" cy="125" r="87"/></clipPath></defs>
+ <ellipse cx="128" cy="222" rx="66" ry="10" fill="#080c27" opacity=".2"/>
+ <circle cx="128" cy="125" r="121" fill="url(#halo)"/>
+ <circle cx="128" cy="125" r="87" fill="url(#surface)"/>
+ <g clip-path="url(#planet)"><path d="M32 66 Q95 38 150 67 T224 53" fill="none" stroke="#248b98" stroke-width="9" opacity=".3"/><path d="M32 84 Q95 56 150 85 T224 71" fill="none" stroke="#d7fff0" stroke-width="10" opacity=".3"/><path d="M32 102 Q95 74 150 103 T224 89" fill="none" stroke="#248b98" stroke-width="16" opacity=".3"/><path d="M32 120 Q95 92 150 121 T224 107" fill="none" stroke="#d7fff0" stroke-width="16" opacity=".3"/><path d="M32 138 Q95 110 150 139 T224 125" fill="none" stroke="#248b98" stroke-width="14" opacity=".3"/><path d="M32 156 Q95 128 150 157 T224 143" fill="none" stroke="#d7fff0" stroke-width="8" opacity=".3"/><ellipse cx="91" cy="69" rx="47" ry="23" transform="rotate(-34 91 69)" fill="white" opacity=".18"/></g>
+ <path d="M57 95A78 78 0 0 1 124 47" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+ <circle cx="202" cy="42" r="3" fill="#d7fff0" opacity=".8"/><path d="M36 44v12m-6-6h12" stroke="#d7fff0" stroke-width="2" stroke-linecap="round"/>
+ </svg>

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="780" height="1688" viewBox="0 0 390 844">
+  <defs>
+    <linearGradient id="bg" x2="0" y2="1"><stop stop-color="#142447"/><stop offset="1" stop-color="#080e25"/></linearGradient>
+    <linearGradient id="bar"><stop stop-color="#66e8e1"/><stop offset="1" stop-color="#9f91ff"/></linearGradient>
+    <linearGradient id="btn" x2="0" y2="1"><stop stop-color="#bea0ff"/><stop offset="1" stop-color="#7962df"/></linearGradient>
+    <marker id="up" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="none" stroke="#6de7da"/></marker>
+    <marker id="down" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="none" stroke="#ffd98a"/></marker>
+  </defs>
+  <rect width="390" height="844" rx="26" fill="url(#bg)"/>
+  <g fill="#91b2df" opacity=".6"><circle cx="29" cy="91" r="1.5"/><circle cx="120" cy="30" r="1"/><circle cx="340" cy="76" r="2"/><circle cx="294" cy="19" r="1"/><circle cx="350" cy="789" r="1.5"/><circle cx="27" cy="731" r="1"/></g>
+  <ellipse cx="318" cy="61" rx="28" ry="26" fill="#7273ba" opacity=".3"/>
+  <ellipse cx="318" cy="61" rx="43" ry="9" fill="none" stroke="#9196d1" opacity=".4" transform="rotate(-22 318 61)"/>
+  <g font-family="Microsoft YaHei, sans-serif" text-anchor="middle" fill="#f1f4ff">
+    <rect x="20" y="24" width="34" height="34" rx="12" fill="#243859"/><text x="37" y="47" font-size="19">⚙</text>
+    <text x="195" y="44" font-size="13" fill="#afbbd9" letter-spacing="3">星球翻翻碰</text>
+    <text x="195" y="91" font-size="25" font-weight="bold">第 1 关</text>
+    <text x="32" y="121" font-size="12" text-anchor="start" fill="#c2cce1">收集进度</text><text x="358" y="121" font-size="14" text-anchor="end">24 / 50</text>
+    <rect x="32" y="132" width="326" height="20" rx="10" fill="#29365a"/>
+    <rect x="35" y="135" width="153" height="14" rx="7" fill="url(#bar)"/>
+    <circle cx="188" cy="142" r="4" fill="#fff"/>
+    <rect x="24" y="171" width="342" height="38" rx="14" fill="#1d2d4d"/>
+    <circle cx="45" cy="190" r="10" fill="#7bd8ed"/><text x="65" y="194" text-anchor="start" font-size="12">幸运星球</text>
+    <text x="348" y="194" text-anchor="end" font-size="12" fill="#e5d5ff">祝福 · 三连余韵</text>
+    <text x="195" y="237" font-size="12" fill="#adbddd">全家福时，此处翻开额外卡</text>
+    <rect x="24" y="253" width="342" height="342" rx="24" fill="#1b2948" stroke="#3d527a"/>
+    <g fill="#263858" stroke="#405779" stroke-width="1">
+      <rect x="35" y="264" width="100" height="100" rx="16"/><rect x="145" y="264" width="100" height="100" rx="16"/><rect x="255" y="264" width="100" height="100" rx="16"/>
+      <rect x="35" y="374" width="100" height="100" rx="16"/><rect x="145" y="374" width="100" height="100" rx="16"/><rect x="255" y="374" width="100" height="100" rx="16"/>
+      <rect x="35" y="484" width="100" height="100" rx="16"/><rect x="145" y="484" width="100" height="100" rx="16"/><rect x="255" y="484" width="100" height="100" rx="16"/>
+    </g>
+    <g>
+      <circle cx="85" cy="314" r="29" fill="#88cddd"/><ellipse cx="85" cy="314" rx="39" ry="10" fill="none" stroke="#d6f6ff" stroke-width="4" transform="rotate(-20 85 314)"/>
+      <circle cx="195" cy="314" r="28" fill="#e5ad82"/><path d="M174 306Q195 317 217 306M175 325Q195 333 215 325" fill="none" stroke="#bc7f67" stroke-width="5"/>
+      <circle cx="305" cy="314" r="28" fill="#b398e0"/><circle cx="294" cy="307" r="8" fill="#987bc2"/><circle cx="315" cy="323" r="5" fill="#9679bf"/>
+      <circle cx="85" cy="424" r="29" fill="#84dcc6"/><circle cx="195" cy="424" r="29" fill="#84dcc6"/><circle cx="305" cy="424" r="29" fill="#84dcc6"/>
+      <g fill="#53bba7"><ellipse cx="82" cy="416" rx="15" ry="6"/><ellipse cx="192" cy="416" rx="15" ry="6"/><ellipse cx="302" cy="416" rx="15" ry="6"/></g>
+      <circle cx="85" cy="534" r="28" fill="#db94bf"/><circle cx="195" cy="534" r="28" fill="#dfc671"/>
+      <rect x="279" y="499" width="52" height="70" rx="9" fill="#7564b0" stroke="#d3c0ff"/><path d="M305 516L310 530L324 534L310 539L305 552L300 539L286 534L300 530Z" fill="#dfd2ff"/>
+    </g>
+    <rect x="35" y="374" width="320" height="100" rx="16" fill="none" stroke="#89f0d8" stroke-width="2"/>
+    <path d="M90 390C-5 300 2 210 164 158" fill="none" stroke="#6de7da" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#up)"/>
+    <rect x="43" y="215" width="116" height="26" rx="13" fill="#24514f"/><text x="101" y="233" font-size="12" fill="#a4ffea">↑ 收集进度 +3</text>
+    <path d="M306 469C360 556 322 613 238 663" fill="none" stroke="#ffd98a" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#down)"/>
+    <rect x="247" y="606" width="104" height="27" rx="13" fill="#554731"/><text x="299" y="624" font-size="12" fill="#ffdf9e">↓ 奖励卡 +3</text>
+    <text x="195" y="624" font-size="11" fill="#aebedb">三连 +2 · 祝福 +1</text>
+    <rect x="64" y="652" width="262" height="99" rx="25" fill="#514092" opacity=".5"/>
+    <rect x="60" y="645" width="270" height="99" rx="25" fill="url(#btn)" stroke="#d6c2ff"/>
+    <text x="195" y="674" font-size="15" fill="#f4ecff">剩余 12 张</text>
+    <text x="195" y="714" font-size="29" font-weight="bold">发 牌</text>
+    <rect x="103" y="765" width="184" height="34" rx="17" fill="#1e2b48"/>
+    <rect x="195" y="768" width="88" height="28" rx="14" fill="#50618b"/>
+    <text x="149" y="787" font-size="13" fill="#aebedb">手动</text><text x="239" y="787" font-size="13">自动</text>
+    <text x="195" y="824" font-size="11" fill="#aebedb">每次点击完成一轮，结算后等待再次发牌</text>
+  </g>
+</svg>

@@ -1,0 +1,18 @@
+/* The package picture is subdivided; only the brief swing extends off its body. */
+.hidden-challenge .hidden-pack-sliced{isolation:isolate;overflow:visible;border-radius:0;filter:drop-shadow(0 0 10px #eac27a66) drop-shadow(0 12px 18px #03081799)}
+.hidden-pack-sliced>.hidden-pack-art{position:absolute;inset:0;transition:none}
+.hidden-pack-sliced.has-fragments>.hidden-pack-art{visibility:hidden}
+.hidden-pack-pieces{position:absolute;inset:0;pointer-events:none}
+.hidden-pack-piece{position:absolute;inset:0;pointer-events:none;backface-visibility:hidden}
+.hidden-pack-piece>img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none}
+.hidden-pack-seams{position:absolute;inset:0;width:100%;height:100%;overflow:hidden;pointer-events:none}
+.hidden-cut-edge{stroke:#130e0a;stroke-width:2;stroke-linecap:butt;opacity:.8}
+.hidden-cut-core{stroke:var(--slice-glow,#ffe5a6);stroke-width:.75;stroke-linecap:butt;opacity:.9}
+.hidden-cut-flash{stroke:#fff7d4;stroke-width:6;stroke-linecap:butt;opacity:0;filter:drop-shadow(0 0 3px var(--slice-glow,#f5ca7a))}
+.hidden-blade-sweep{fill:none;stroke-linecap:round;pointer-events:none}
+.hidden-blade-glow{stroke:var(--slice-glow,#edbb65);stroke-width:6;opacity:.65;filter:blur(2px)}
+.hidden-blade-core{stroke:#fff7d4;stroke-width:1.7;filter:drop-shadow(0 0 4px var(--slice-glow,#f5ca7a))}
+.hidden-challenge.hidden-complete .hidden-pack-sliced{animation:none;filter:drop-shadow(0 3px 5px #03081799)}
+.hidden-pack-sliced.is-breaking .hidden-pack-piece{will-change:transform,opacity}
+.hidden-break-glow{position:absolute;inset:-18%;z-index:-1;border-radius:50%;opacity:0;background:radial-gradient(ellipse,#fff4cc99,var(--slice-glow,#efc77e) 12%,#f3c97900 62%);pointer-events:none}
+@media(prefers-reduced-motion:reduce){.hidden-pack-sliced.is-breaking .hidden-pack-piece{will-change:opacity}.hidden-pack-sliced .hidden-cut-flash,.hidden-blade-sweep,.hidden-break-glow{display:none}}

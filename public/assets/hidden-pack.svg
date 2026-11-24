@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="330" viewBox="0 0 240 330">
+  <defs>
+    <linearGradient id="bag" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#302742"/><stop offset=".45" stop-color="#171a31"/><stop offset="1" stop-color="#0e1226"/></linearGradient>
+    <linearGradient id="foil" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#f7d58e" stop-opacity=".2"/><stop offset=".5" stop-color="#fff0b6" stop-opacity=".8"/><stop offset="1" stop-color="#d6954e" stop-opacity=".18"/></linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff7dc"/><stop offset="1" stop-color="#d7c9e8"/></linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <path d="M22 29Q22 16 35 16H205Q218 16 218 29L211 301Q210 316 196 316H44Q30 316 29 301Z" fill="url(#bag)" stroke="#f2cb83" stroke-width="3"/>
+  <path d="M22 29H218L211 65H29Z" fill="#0b1023" stroke="#e5bd78" stroke-opacity=".45" stroke-width="2"/>
+  <path d="M29 295H211L218 316H22Z" fill="#0b1023" stroke="#e5bd78" stroke-opacity=".45" stroke-width="2"/>
+  <path d="M28 43H212M27 287H213" stroke="url(#foil)" stroke-width="5" stroke-dasharray="3 5"/>
+  <path d="M38 73Q120 55 202 73L197 279Q120 294 43 279Z" fill="#151a32" stroke="#f1cf8b" stroke-opacity=".5" stroke-width="2"/>
+  <rect x="57" y="103" width="126" height="137" rx="15" fill="url(#card)" stroke="#f4d18d" stroke-width="3" transform="rotate(-3 120 171)"/>
+  <rect x="68" y="114" width="104" height="115" rx="10" fill="#342b50" opacity=".92" transform="rotate(-3 120 171)"/>
+  <path d="M120 128V208M80 168H160" stroke="#f3d28e" stroke-opacity=".3" stroke-width="2" transform="rotate(-3 120 171)"/>
+  <text x="120" y="184" text-anchor="middle" fill="#ffe4a8" font-size="44" font-weight="700" font-family="Microsoft YaHei,sans-serif">?</text>
+  <path d="M120 41l7 14 15 3-11 10 2 15-13-7-13 7 2-15-11-10 15-3z" fill="#ffe5a7" filter="url(#glow)"/>
+  <text x="120" y="91" text-anchor="middle" fill="#ffe2a4" font-size="13" letter-spacing="3" font-family="sans-serif">STAR DUST PACK</text>
+  <text x="120" y="269" text-anchor="middle" fill="#d8c5dd" font-size="11" letter-spacing="2" font-family="Microsoft YaHei,sans-serif">撕开 · 发现隐藏款</text>
+  <path d="M30 54l14 8-14 8M210 54l-14 8 14 8" fill="none" stroke="#ffe2a1" stroke-width="2"/>
+</svg>

@@ -1,0 +1,299 @@
+[
+  {
+    "collecting": 0,
+    "disabled": true,
+    "forming": 0,
+    "remaining": "剩余 11 张",
+    "returning": 0,
+    "score": "0 颗星球",
+    "ms": 346
+  },
+  {
+    "collecting": 3,
+    "disabled": true,
+    "forming": 0,
+    "remaining": "剩余 11 张",
+    "returning": 0,
+    "score": "0 颗星球",
+    "ms": 607
+  },
+  {
+    "collecting": 2,
+    "disabled": true,
+    "forming": 0,
+    "remaining": "剩余 11 张",
+    "returning": 0,
+    "score": "0 颗星球",
+    "ms": 1058
+  },
+  {
+    "collecting": 1,
+    "disabled": true,
+    "forming": 0,
+    "remaining": "剩余 11 张",
+    "returning": 0,
+    "score": "0 颗星球",
+    "ms": 1101
+  },
+  {
+    "collecting": 0,
+    "disabled": true,
+    "forming": 1,
+    "remaining": "剩余 11 张",
+    "returning": 0,
+    "score": "3 颗星球",
+    "ms": 1150
+  },
+  {
+    "collecting": 0,
+    "disabled": true,
+    "forming": 2,
+    "remaining": "剩余 11 张",
+    "returning": 0,
+    "score": "3 颗星球",
+    "ms": 1237
+  },
+  {
+    "collecting": 0,
+    "disabled": true,
+    "forming": 3,
+    "remaining": "剩余 11 张",
+    "returning": 0,
+    "score": "3 颗星球",
+    "ms": 1329
+  },
+  {
+    "collecting": 2,
+    "disabled": true,
+    "forming": 3,
+    "remaining": "剩余 11 张",
+    "returning": 0,
+    "score": "3 颗星球",
+    "ms": 1411
+  },
+  {
+    "collecting": 2,
+    "disabled": true,
+    "forming": 2,
+    "remaining": "剩余 11 张",
+    "returning": 1,
+    "score": "3 颗星球",
+    "ms": 1524
+  },
+  {
+    "collecting": 2,
+    "disabled": true,
+    "forming": 1,
+    "remaining": "剩余 11 张",
+    "returning": 2,
+    "score": "3 颗星球",
+    "ms": 1619
+  },
+  {
+    "collecting": 2,
+    "disabled": true,
+    "forming": 0,
+    "remaining": "剩余 11 张",
+    "returning": 3,
+    "score": "3 颗星球",
+    "ms": 1704
+  },
+  {
+    "collecting": 1,
+    "disabled": true,
+    "forming": 0,
+    "remaining": "剩余 11 张",
+    "returning": 3,
+    "score": "3 颗星球",
+    "ms": 1861
+  },
+  {
+    "collecting": 0,
+    "disabled": true,
+    "forming": 1,
+    "remaining": "剩余 11 张",
+    "returning": 3,
+    "score": "5 颗星球",
+    "ms": 1911
+  },
+  {
+    "collecting": 0,
+    "disabled": true,
+    "forming": 1,
+    "remaining": "剩余 12 张",
+    "returning": 2,
+    "score": "5 颗星球",
+    "ms": 1966
+  },
+  {
+    "collecting": 0,
+    "disabled": true,
+    "forming": 1,
+    "remaining": "剩余 13 张",
+    "returning": 1,
+    "score": "5 颗星球",
+    "ms": 2058
+  },
+  {
+    "collecting": 0,
+    "disabled": true,
+    "forming": 1,
+    "remaining": "剩余 14 张",
+    "returning": 0,
+    "score": "5 颗星球",
+    "ms": 2150
+  },
+  {
+    "collecting": 2,
+    "disabled": true,
+    "forming": 1,
+    "remaining": "剩余 14 张",
+    "returning": 0,
+    "score": "5 颗星球",
+    "ms": 2167
+  },
+  {
+    "collecting": 2,
+    "disabled": true,
+    "forming": 0,
+    "remaining": "剩余 14 张",
+    "returning": 1,
+    "score": "5 颗星球",
+    "ms": 2284
+  },
+  {
+    "collecting": 1,
+    "disabled": true,
+    "forming": 0,
+    "remaining": "剩余 14 张",
+    "returning": 1,
+    "score": "5 颗星球",
+    "ms": 2620
+  },
+  {
+    "collecting": 0,
+    "disabled": true,
+    "forming": 1,
+    "remaining": "剩余 14 张",
+    "returning": 1,
+    "score": "7 颗星球",
+    "ms": 2661
+  },
+  {
+    "collecting": 0,
+    "disabled": true,
+    "forming": 1,
+    "remaining": "剩余 15 张",
+    "returning": 0,
+    "score": "7 颗星球",
+    "ms": 2723
+  },
+  {
+    "collecting": 2,
+    "disabled": true,
+    "forming": 1,
+    "remaining": "剩余 15 张",
+    "returning": 0,
+    "score": "7 颗星球",
+    "ms": 2927
+  },
+  {
+    "collecting": 2,
+    "disabled": true,
+    "forming": 0,
+    "remaining": "剩余 15 张",
+    "returning": 1,
+    "score": "7 颗星球",
+    "ms": 3035
+  },
+  {
+    "collecting": 1,
+    "disabled": true,
+    "forming": 0,
+    "remaining": "剩余 15 张",
+    "returning": 1,
+    "score": "7 颗星球",
+    "ms": 3377
+  },
+  {
+    "collecting": 0,
+    "disabled": true,
+    "forming": 2,
+    "remaining": "剩余 15 张",
+    "returning": 1,
+    "score": "9 颗星球",
+    "ms": 3422
+  },
+  {
+    "collecting": 0,
+    "disabled": true,
+    "forming": 2,
+    "remaining": "剩余 16 张",
+    "returning": 0,
+    "score": "9 颗星球",
+    "ms": 3481
+  },
+  {
+    "collecting": 0,
+    "disabled": true,
+    "forming": 3,
+    "remaining": "剩余 16 张",
+    "returning": 0,
+    "score": "9 颗星球",
+    "ms": 3510
+  },
+  {
+    "collecting": 0,
+    "disabled": true,
+    "forming": 4,
+    "remaining": "剩余 16 张",
+    "returning": 0,
+    "score": "9 颗星球",
+    "ms": 3602
+  },
+  {
+    "collecting": 0,
+    "disabled": true,
+    "forming": 5,
+    "remaining": "剩余 16 张",
+    "returning": 0,
+    "score": "9 颗星球",
+    "ms": 3694
+  },
+  {
+    "collecting": 0,
+    "disabled": true,
+    "forming": 6,
+    "remaining": "剩余 16 张",
+    "returning": 0,
+    "score": "9 颗星球",
+    "ms": 3777
+  },
+  {
+    "collecting": 0,
+    "disabled": true,
+    "forming": 4,
+    "remaining": "剩余 16 张",
+    "returning": 2,
+    "score": "9 颗星球",
+    "ms": 3792
+  },
+  {
+    "collecting": 0,
+    "disabled": true,
+    "forming": 3,
+    "remaining": "剩余 16 张",
+    "returning": 3,
+    "score": "9 颗星球",
+    "ms": 3886
+  },
+  {
+    "collecting": 0,
+    "disabled": true,
+    "forming": 2,
+    "remaining": "剩余 16 张",
+    "returning": 4,
+    "score": "9 颗星球",
+    "ms": 3972
+  }
+]

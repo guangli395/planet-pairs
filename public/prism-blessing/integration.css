@@ -1,0 +1,85 @@
+/* Only stage framing and game typography change; foil, optics, spring motion,
+   ribbons, particles and card shaders remain in the vendored upstream engine. */
+:root {
+  --pack-h: min(310px, 74vh, 88vw);
+  --stage-bg: transparent;
+  --font-ui: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+  --font-display: 'STSong', 'SimSun', serif;
+  --focus-ring: #ffe3ad;
+  --spotlight-bg: radial-gradient(ellipse at 50% 42%, #b69bda18, transparent 70%);
+  --stage-vignette-bg: radial-gradient(ellipse at 50% 48%, transparent 32%, #16182d15 100%);
+  --blind-card-edge: #696380;
+  --blind-card-glow: #d4bbe9;
+  --blind-card-shadow: #12152d55;
+}
+html, body { background: transparent; }
+.stage { overflow: clip; }
+.top-bar, .bottom-chrome, .pull-banner, .binder-modal, body>h1 { display: none !important; }
+.stage-backdrop { background: radial-gradient(ellipse at 50% 70%, #a8c8e00d, transparent 65%); }
+.stage-spotlight { opacity: .6; }
+.stage-grain { opacity: .02; }
+.pouch-header { align-items: flex-start; }
+.brand-mark { flex-shrink: 0; white-space: nowrap; font: 700 calc(var(--pack-w)*.11)/1.3 var(--font-display); letter-spacing: .1em; }
+.edition-tag { font-size: calc(var(--pack-w)*.026); letter-spacing: .03em; }
+.edition-tag, .pouch-footer, .back-spec, .card-back-top, .card-back-sub, .card-foot-row, .card-trait { display: none; }
+.card-plaque { min-height: 22%; justify-content: center; }
+.pouch-footer { gap: 5px; }
+.pack-foot { font-size: calc(var(--pack-w)*.029); letter-spacing: .02em; }
+.pack-micro-spec { font-size: calc(var(--pack-w)*.022); letter-spacing: .06em; }
+.mascot-slot { filter: drop-shadow(0 6px 9px #20142d44); }
+.card-title { font-family: var(--font-display); font-weight: 700; font-size: calc(var(--card-w)*.125); letter-spacing: .035em; }
+.card-tag { font-size: calc(var(--card-w)*.09); background: transparent; border: 0; padding: 0; }
+.card-plaque { padding: calc(var(--card-w)*.06); }
+.card-trait { margin-top: 5px; font-size: calc(var(--card-w)*.047); line-height: 1.55; min-height: 2.9em; white-space: normal; }
+.card-foot-row { font-size: calc(var(--card-w)*.038); letter-spacing: 0; }
+.card-rarity { font-size: inherit; }
+.card-serial { font-size: inherit; }
+.card .new-badge { display: none; }
+.card .char-pop { pointer-events: none; }
+.card.blessing-selected .card-face { outline: 3px solid #ffe1a4; outline-offset: 3px; box-shadow: 0 0 26px #f3c68166; }
+.card.blessing-selected::after { content: '✓'; position: absolute; right: -10px; top: -10px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: #4c3d55; background: #ffe4b3; font: 700 18px/1 var(--font-ui); transform: translateZ(9px); box-shadow: 0 2px 8px #12152d77; }
+@media(prefers-reduced-motion:reduce) { .stage-grain { display: none; } }
+/* The parent supplies every theme asset, including the reverse of each card. */
+body[data-universe] .card-back { background-image:var(--universe-card-back); background-size:100% 100%; border:0; }
+body[data-universe] .card-back>* { visibility:hidden; }
+/* Conceal the character's edge color until its front is actually visible.
+   Every reverse uses the same shadow and rim, including on hover. */
+.card:not(.front-visible) .card-edge { background:var(--blind-card-edge); }
+.card .card-back,
+.card.settled.unrevealed:not(.rarity-common) .card-back,
+.card.settled.unrevealed.rarity-secret .card-back {
+  border-color:var(--blind-card-edge);
+  box-shadow:0 0 0 1px var(--blind-card-edge),0 0 14px color-mix(in srgb,var(--blind-card-glow) 18%,transparent),0 12px 22px -10px var(--blind-card-shadow);
+  animation:none;
+}
+body[data-palette='warm'] { --blind-card-shadow:#9a733a40; }
+body[data-palette='warm'] { --focus-ring:#d98b43; --spotlight-bg:radial-gradient(ellipse at 50% 42%,#f8cc7a20,transparent 70%); --stage-vignette-bg:transparent; --ground-shadow-bg:radial-gradient(ellipse,#a77d3930,transparent 70%); }
+body[data-palette='warm'] .stage-backdrop { background:radial-gradient(ellipse at 50% 70%,#efc47a15,transparent 65%); }
+body[data-palette='warm'] .stage-grain { opacity:.01; }
+body[data-palette='warm'] .brand-mark,body[data-palette='warm'] .back-logo { color:#fff9e4; text-shadow:0 1px 2px #945c3944; }
+body[data-palette='warm'] .mascot-slot { filter:drop-shadow(0 5px 7px #945c392b); }
+body[data-palette='warm'] .card.blessing-selected .card-face { outline-color:#d5964d; box-shadow:0 0 22px #f0bd6b50; }
+body[data-palette='warm'] .card.blessing-selected::after { color:#fffdf2; background:#799b4e; box-shadow:0 2px 8px #72512e33; }
+body[data-universe='milktea'] { --focus-ring:var(--tea-red); --blind-card-shadow:#75443335; --spotlight-bg:radial-gradient(ellipse at 50% 42%,#e8ba9b20,transparent 70%); --ground-shadow-bg:radial-gradient(ellipse,#80533e26,transparent 70%); }
+body[data-universe='milktea'] .stage-backdrop { background:radial-gradient(ellipse at 50% 70%,#e7bea414,transparent 65%); }
+body[data-universe='milktea'] .brand-mark { color:var(--tea-paper); text-shadow:0 1px 2px var(--tea-red-dark); }
+body[data-universe='milktea'] .card.blessing-selected .card-face { outline-color:var(--tea-red); box-shadow:0 0 20px #c7504533; }
+body[data-universe='milktea'] .card.blessing-selected::after { color:var(--tea-paper); background:var(--tea-red); box-shadow:0 2px 8px #75443333; }
+
+/* Keep the upstream optics and motion; give the new collection a gold finish. */
+body[data-universe='naiwa'] { --focus-ring:#f3d99e; --blind-card-edge:#a78a53; --blind-card-glow:#e4c584; --blind-card-shadow:#030711aa; --spotlight-bg:radial-gradient(ellipse at 50% 42%,#d0ac6118,transparent 70%); --ground-shadow-bg:radial-gradient(ellipse,#03081255,transparent 70%); }
+body[data-universe='naiwa'] .stage-backdrop { background:radial-gradient(ellipse at 50% 70%,#c2a05a0b,transparent 65%); }
+body[data-universe='naiwa'] .brand-mark { color:#f3dfae; text-shadow:0 1px 2px #030712,0 0 15px #eac37622; }
+body[data-universe='naiwa'] .pouch-foil-frame { border-color:#e6c68077; box-shadow:inset 0 0 0 1px #e4c58422,inset 0 1px #fff0b940; }
+body[data-universe='naiwa'] .pouch-halo-ring { border-color:#d7b6793b; }
+body[data-universe='naiwa'] .mascot-slot { filter:drop-shadow(0 7px 9px #02071288); }
+body[data-universe='naiwa'] .card-inner-bevel { border-color:#e6c68066; box-shadow:inset 0 0 0 1px #050a1388; }
+body[data-universe='naiwa'] .art-window { border-color:#d5b67666; box-shadow:inset 0 2px 8px #03071266,0 1px #f4deac33; }
+body[data-universe='naiwa'] .card-plaque { border-color:#e0c48a4d; box-shadow:inset 0 1px #e7cb8c26,0 4px 10px #02071144; }
+body[data-universe='naiwa'] .card-title { color:#f7e8c8; text-shadow:0 1px #060b15; }
+body[data-universe='naiwa'] .card-tag { color:#e7c88c; }
+body[data-universe='naiwa'] .foil-holo { opacity:calc(.16 + var(--hyp)*.38); filter:brightness(.75) contrast(1.5) saturate(.95); }
+body[data-universe='naiwa'] .foil-clearcoat { box-shadow:inset 0 0 0 1px #efd7a357,inset 0 1.5px 1.5px #fff1c799,inset 0 -2px 4px #02061055; }
+body[data-universe='naiwa'] .card-back::after { content:''; position:absolute; inset:1%; border-radius:inherit; pointer-events:none; background:linear-gradient(112deg,transparent 29%,#f4daa30a 39%,#ffecb72b 48%,#b88c3506 57%,transparent 65%) calc((100 - var(--px))*1%) 0 / 250% 100%; mix-blend-mode:screen; }
+body[data-universe='naiwa'] .card.blessing-selected .card-face { outline-color:#f1d493; box-shadow:0 0 22px #e8bc6044; }
+body[data-universe='naiwa'] .card.blessing-selected::after { color:#382c19; background:linear-gradient(135deg,#fff0bf,#c09b54); box-shadow:0 2px 8px #02071088; }
