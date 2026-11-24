@@ -16,7 +16,8 @@ export function createSoundController(options = {}) {
   let ctx = null;
   let api = null;
   let muted = options.muted ?? !(window.__blessingInit?.sound ?? true);
-  const volume = options.volume ?? 1.17;
+  let volume = options.volume ?? 1.17;
+  let flipWhoosh = options.flipWhoosh !== false;
 
   try {
     // Preferences are owned by the parent game.
@@ -278,7 +279,7 @@ export function createSoundController(options = {}) {
           const t = now();
           const pan = (slotIndex - 2) * 0.18;
           // The board keeps the chord without the foil-like rush at touchdown.
-          if (options.flipWhoosh !== false) {
+          if (flipWhoosh) {
             playFilteredNoise({ at: t, freqStart: 900, freqEnd: 2900, q: 0.75, gain: 0.11, attack: 0.008, dur: 0.14, panStart: pan, panEnd: pan });
           }
 
@@ -334,6 +335,11 @@ export function createSoundController(options = {}) {
 
   return {
     unlock: initAudio,
+    setProfile(nextVolume, nextWhoosh) {
+      if (volume === nextVolume && flipWhoosh === nextWhoosh) return;
+      volume = nextVolume; flipWhoosh = nextWhoosh;
+      api?.setMuted(muted);
+    },
     setMuted(value) { muted=Boolean(value); api?.setMuted(muted); },
     get isMuted() {
       return muted;

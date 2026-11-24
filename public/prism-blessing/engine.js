@@ -61,10 +61,15 @@ $('#microSpec').textContent = PACK_BRAND.microSpec;
 $('#backBlurb').innerHTML = PACK_BRAND.backHeadline.replace(/\n/g, '<br>');
 $('#backSpec').textContent = PACK_BRAND.backSpec;
 
-const sound = createSoundController();
+// Same-origin parent shares the AudioContext unlocked by the actual tap.
+const sound = window.__planetPackSound ?? createSoundController();
+for (const event of ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown']) {
+  window.addEventListener(event, () => sound.unlock(), {capture: true, passive: true});
+}
 muteBtn.setAttribute('aria-pressed', String(sound.isMuted));
 muteBtn.addEventListener('click', () => {
-  const nowMuted = sound.toggleMute();
+  const nowMuted = !sound.isMuted;
+  sound.setMuted(nowMuted);
   muteBtn.setAttribute('aria-pressed', String(nowMuted));
 });
 
@@ -91,7 +96,16 @@ themeModeBtn.addEventListener('click', () => {
 });
 
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+const isCoarsePointer = window.__blessingInit?.mobileEffects ?? window.matchMedia('(pointer: coarse)').matches;
+document.body.dataset.mobileEffects = String(isCoarsePointer);
+let lastSurfacePaint = 0, lastJetPaint = 0;
+const styleValues = new WeakMap();
+function cachedStyle(element, key, value) {
+  let values = styleValues.get(element);
+  if (!values) { values = new Map(); styleValues.set(element, values); }
+  if (values.get(key) === value) return;
+  values.set(key, value); element.style.setProperty(key, value);
+}
 
 /* ---------- 图鉴存档与保底状态（localStorage 持久化） ---------- */
 const STORAGE_KEY = 'smkt-pack-binder-v2';
@@ -571,7 +585,7 @@ const RIBBON_COUNT = 32;
 const JET_ORIGIN_Y = 107.5;
 const JET_SPAN = 1500;
 const JET_TIP = 36;
-const JET_STEP = isCoarsePointer ? 3.5 : 2.5;
+const JET_STEP = isCoarsePointer ? 5 : 2.5;
 
 let jetEdges = [];
 let jetRibbons = [];
@@ -1204,7 +1218,7 @@ function spawnPackCards() {
     el.addEventListener('blur', () => {
       cardObj.kbFocused = false;
     });
-    el.addEventListener('click', e => { e.stopPropagation(); selectBlessing(cardObj); });
+    el.addEventListener('click', e => { e.stopPropagation(); if (!touchSwipeMoved) selectBlessing(cardObj); });
     el.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectBlessing(cardObj); } });
 
 
@@ -1791,6 +1805,7 @@ window.addEventListener('pointermove', (e) => {
   pointer.y = e.clientY;
   pointer.inside = true;
   pointer.isTouch = e.pointerType !== 'mouse';
+  if (pointer.down && pointer.isTouch && Math.hypot(e.clientX - touchSwipeStart.x, e.clientY - touchSwipeStart.y) > 9) touchSwipeMoved = true;
 
   // 未拆封时快速左右晃动指针自动触发摇包验包
   if (stageState === 'idle' && !dragSession && tearState.p.to === 0 && binderModal.hidden) {
@@ -1806,7 +1821,9 @@ window.addEventListener('pointermove', (e) => {
 
 });
 
+let touchSwipeStart = {x: 0, y: 0}, touchSwipeMoved = false;
 window.addEventListener('pointerdown', (e) => {
+  touchSwipeStart = {x: e.clientX, y: e.clientY}; touchSwipeMoved = false;
   pointer.x = e.clientX;
   pointer.y = e.clientY;
   pointer.prevX = e.clientX;
@@ -1882,9 +1899,15 @@ againBtn.addEventListener('click', (e) => {
 });
 
 /* ---------- 主渲染循环 ---------- */
+let frameRequest = 0, stopped = false;
+let springCards = null, springShowcase = null, allSprings = [];
 function tick(nowMs) {
+  if (stopped) return;
+  if (document.hidden) { lastFrameMs = nowMs; return; }
   const dt = Math.min(0.05, (nowMs - lastFrameMs) / 1000);
   lastFrameMs = nowMs;
+  const paintSurface = !isCoarsePointer || nowMs - lastSurfacePaint >= 50;
+  if (paintSurface) lastSurfacePaint = nowMs;
   clockSec += dt;
   stageEl.dataset.phase = stageState;
   stageEl.dataset.tearProgress = Math.min(1, tearState.p.x).toFixed(3);
@@ -1933,7 +1956,9 @@ function tick(nowMs) {
   }
 
   // 240Hz 子步进更新全部弹簧
-  const allSprings = [
+  if (springCards !== cards || springShowcase !== showcaseCard || !allSprings.length) {
+    springCards = cards; springShowcase = showcaseCard;
+    allSprings = [
     ...Object.values(packPose),
     ...Object.values(pupilOffset),
     tearState.p,
@@ -1945,6 +1970,7 @@ function tick(nowMs) {
     ...cards.flatMap((c) => [...Object.values(c.pose), c.flip]),
     ...(showcaseCard ? Object.values(showcaseCard.pose) : []),
   ];
+  }
   const substeps = Math.max(1, Math.ceil(dt * 240));
   const subDt = dt / substeps;
   for (let s = 0; s < substeps; s++) {
@@ -2008,7 +2034,10 @@ function tick(nowMs) {
       : 0;
   if (jetGlowSpring.x > 0.003 || jetGlowSpring.to) {
     lightJet.style.opacity = jetGlowSpring.x.toFixed(3);
-    stepLightJet(dt);
+    if (!isCoarsePointer || nowMs - lastJetPaint >= 32) {
+      const jetDt = lastJetPaint ? Math.min(.1, (nowMs - lastJetPaint) / 1000) : dt;
+      lastJetPaint = nowMs; stepLightJet(jetDt);
+    }
   }
 
   // 撕断封口条抛物线飞走
@@ -2043,11 +2072,13 @@ function tick(nowMs) {
       `scale3d(${1 + 0.03 * squeezeSpring.x}, ${1 - 0.06 * squeezeSpring.x}, 1)`;
 
     if (!packFall) {
-      pack.style.setProperty('--glint-x', clamp(-packPose.ry.x * 0.12, -1.5, 3).toFixed(2));
-      pack.style.setProperty('--glint-op', clamp(0.8 - packPose.ry.x * 0.012, 0.45, 1).toFixed(2));
-      pack.style.setProperty('--shine-pos', clamp(50 + packPose.ry.x * 1.2, 20, 80).toFixed(1));
-      pack.style.setProperty('--shine-op', clamp(0.85 + packPose.rx.x * 0.015, 0.5, 1).toFixed(2));
-      pack.style.setProperty('--hue-shift', clamp(packPose.ry.x * 1.2 + packPose.rx.x * 0.8, -22, 22).toFixed(1));
+      if (paintSurface) {
+        cachedStyle(pack, '--glint-x', clamp(-packPose.ry.x * 0.12, -1.5, 3).toFixed(2));
+        cachedStyle(pack, '--glint-op', clamp(0.8 - packPose.ry.x * 0.012, 0.45, 1).toFixed(2));
+        cachedStyle(pack, '--shine-pos', clamp(50 + packPose.ry.x * 1.2, 20, 80).toFixed(1));
+        cachedStyle(pack, '--shine-op', clamp(0.85 + packPose.rx.x * 0.015, 0.5, 1).toFixed(2));
+        cachedStyle(pack, '--hue-shift', clamp(packPose.ry.x * 1.2 + packPose.rx.x * 0.8, -22, 22).toFixed(1));
+      }
       for (const pEl of packPupils) {
         pEl.style.transform = `translate(${pupilOffset.x.x}px, ${pupilOffset.y.x}px)`;
       }
@@ -2139,12 +2170,8 @@ function tick(nowMs) {
       if (active !== c.wasHovered) {
         c.wasHovered = active;
         c.el.classList.toggle('hovered', active);
-        if (active) {
-          if (!c.revealed && RARITY_META[c.def.rarity].rank >= 2) {
-            sound.call('cardTease', c.def.rarity, c.slot);
-          } else {
-            sound.call('cardHover', c.slot);
-          }
+        if (active && (!pointer.isTouch || pointer.down)) {
+          sound.call('cardHover', c.slot);
         }
       }
 
@@ -2194,23 +2221,25 @@ function tick(nowMs) {
     const tiltRy = isFree ? p.ry.x + clamp(p.x.v * 0.008, -12, 12) : packPose.ry.x;
     const totalRy = tiltRy + c.flip.x;
 
-    c.el.style.transform =
-      `translate3d(${p.x.x}px, ${p.y.x}px, ${p.z.x}px) ` +
-      `rotateZ(${p.rz.x}deg) rotateX(${rx}deg) rotateY(${totalRy}deg) scale(${p.s.x})`;
+    cachedStyle(c.el, 'transform',
+      `translate3d(${p.x.x.toFixed(2)}px, ${p.y.x.toFixed(2)}px, ${p.z.x.toFixed(2)}px) ` +
+      `rotateZ(${p.rz.x.toFixed(2)}deg) rotateX(${rx.toFixed(2)}deg) rotateY(${totalRy.toFixed(2)}deg) scale(${p.s.x.toFixed(4)})`);
 
     if (isFree) {
       c.elevated = zoomedCard === c || (!zoomedCard && (c.hovered || (c.elevated && p.z.x > c.fan.z + 30)));
     }
-    c.el.style.visibility = c.phase === 'inside' ? 'hidden' : '';
-    c.el.style.zIndex = String(zoomedCard === c ? 20 : c.elevated ? 10 : c.phase === 'orbit' || isPortraitLayout ? c.depthRank : cards.length - c.idx);
+    cachedStyle(c.el, 'visibility', c.phase === 'inside' ? 'hidden' : 'visible');
+    cachedStyle(c.el, 'z-index', String(zoomedCard === c ? 20 : c.elevated ? 10 : c.phase === 'orbit' || isPortraitLayout ? c.depthRank : cards.length - c.idx));
 
     if (c.phase === 'fanned' && c.frontShown) {
-      c.el.setAttribute('aria-label', c.def.name + '，' + c.def.trait + '点击选择此祝福。');
+      if (!c.labelReady) { c.labelReady = true; c.el.setAttribute('aria-label', c.def.name + '，' + c.def.trait + '点击选择此祝福。'); }
       const nx = clamp(tiltRy / 24, -1, 1);
       const ny = clamp(rx / 24, -1, 1);
-      c.faceEl.style.setProperty('--px', (50 + nx * 50).toFixed(1));
-      c.faceEl.style.setProperty('--py', (50 - ny * 50).toFixed(1));
-      c.faceEl.style.setProperty('--hyp', Math.min(1, Math.hypot(nx, ny)).toFixed(3));
+      if (paintSurface) {
+        cachedStyle(c.faceEl, '--px', (50 + nx * 50).toFixed(1));
+        cachedStyle(c.faceEl, '--py', (50 - ny * 50).toFixed(1));
+        cachedStyle(c.faceEl, '--hyp', Math.min(1, Math.hypot(nx, ny)).toFixed(3));
+      }
     }
   }
 
@@ -2358,12 +2387,22 @@ function tick(nowMs) {
     return true;
   });
 
-  requestAnimationFrame(tick);
+  frameRequest = requestAnimationFrame(tick);
 }
 
 measureStage();
 enterFreshPack();
-requestAnimationFrame(tick);
+frameRequest = requestAnimationFrame(tick);
+window.addEventListener('pagehide', () => { stopped = true; cancelAnimationFrame(frameRequest); sound.call('setRip', 0); });
+window.addEventListener('pageshow', () => {
+  if (!stopped) return;
+  stopped = false; lastFrameMs = performance.now(); frameRequest = requestAnimationFrame(tick);
+});
+document.addEventListener('visibilitychange', () => {
+  cancelAnimationFrame(frameRequest);
+  if (document.hidden) sound.call('setRip', 0);
+  else if (!stopped) { lastFrameMs = performance.now(); frameRequest = requestAnimationFrame(tick); }
+});
 
 window.addEventListener('message', event => {
   if(event.source !== window.parent || event.origin !== location.origin || event.data?.channel !== 'planet-blessing') return;

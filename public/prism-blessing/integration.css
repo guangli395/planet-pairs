@@ -83,3 +83,10 @@ body[data-universe='naiwa'] .foil-clearcoat { box-shadow:inset 0 0 0 1px #efd7a3
 body[data-universe='naiwa'] .card-back::after { content:''; position:absolute; inset:1%; border-radius:inherit; pointer-events:none; background:linear-gradient(112deg,transparent 29%,#f4daa30a 39%,#ffecb72b 48%,#b88c3506 57%,transparent 65%) calc((100 - var(--px))*1%) 0 / 250% 100%; mix-blend-mode:screen; }
 body[data-universe='naiwa'] .card.blessing-selected .card-face { outline-color:#f1d493; box-shadow:0 0 22px #e8bc6044; }
 body[data-universe='naiwa'] .card.blessing-selected::after { color:#382c19; background:linear-gradient(135deg,#fff0bf,#c09b54); box-shadow:0 2px 8px #02071088; }
+
+/* Keep foil and 3D motion, avoid stacked full-card filters on phone GPUs. */
+body[data-mobile-effects='true'] .stage-grain { display:none; }
+body[data-mobile-effects='true'] .foil-holo { filter:none; }
+body[data-mobile-effects='true'] .foil-holo::after { filter:none; opacity:.65; }
+body[data-mobile-effects='true'] .foil-clearcoat::before { opacity:.75; }
+body[data-mobile-effects='true'] .char-pop .char-body { filter:drop-shadow(0 3px 4px #0005); }

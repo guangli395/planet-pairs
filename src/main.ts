@@ -47,12 +47,17 @@ const cardSounds = createCardSounds({
   getContext: () => audio ??= new AudioContext(),
   fallback: () => beep('flip'),
 });
+document.addEventListener('pointerdown', cardSounds.unlock, {capture: true, passive: true});
+document.addEventListener('keydown', cardSounds.unlock, {capture: true});
 if (previewBlessing) {
   // The isolated development route records which upstream voice actually ran.
-  (window as Window & {__smktSfxHook?: (method: string) => void}).__smktSfxHook = method => {
-    if (method !== 'cardFlip') return;
+  (window as Window & {__smktSfxHook?: (method: string, args: unknown[]) => void}).__smktSfxHook = (method, args) => {
+    if (!['cardFlip', 'cardHover', 'cardTease', 'grab', 'burst', 'setRip'].includes(method)) return;
+    if (method === 'setRip' && !(Number(args[0]) > 0)) return;
     app.dataset.cardSound = method; app.dataset.audioState = audio?.state ?? 'uninitialized';
     app.dataset.cardSoundCount = String(Number(app.dataset.cardSoundCount ?? 0) + 1);
+    const key = `sound${method[0].toUpperCase()}${method.slice(1)}`;
+    app.dataset[key] = String(Number(app.dataset[key] ?? 0) + 1);
   };
 }
 
@@ -220,6 +225,8 @@ function setup(mode: Mode, stage: number) {
     requestChoiceAd: () => requestAdReward('blessing'),
     onContinue: () => { draft!.step = 'lucky'; updatePreparation(); luckySetup(); },
     soundEnabled: store.sound,
+    soundController: cardSounds.packSound,
+    mobileEffects: import.meta.env.DEV && new URLSearchParams(location.search).has('previewMobileEffects') ? true : undefined,
     theme: universe(),
   });
 }

@@ -8,5 +8,16 @@
     <link rel="icon" type="image/svg+xml" href="/assets/planet-0.svg" />
     <link rel="preload" as="image" href="/assets/blessing-front.svg" />
   </head>
-  <body><div id="app"></div><script type="module" src="/src/main.ts"></script></body>
+  <body>
+    <div id="game-loading" role="progressbar" aria-label="游戏资源加载" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="loading-art" aria-hidden="true">✦</div>
+      <h1>翻翻碰</h1><p id="loading-status" role="status">正在准备游戏…</p>
+      <div class="loading-track"><i id="loading-fill"></i></div><strong id="loading-percent">0%</strong>
+      <div class="loading-actions"><button id="loading-retry" hidden>重新加载</button><button id="loading-continue" hidden>先进入游戏</button></div>
+    </div>
+    <style>
+      #game-loading{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 35%,#33324c,#121829 70%);color:#f4e5c9;font-family:'Microsoft YaHei',sans-serif;text-align:center}#game-loading h1{font-size:28px;letter-spacing:6px;margin:20px 0 8px}#game-loading p{font-size:12px;color:#b6b1c9;min-height:20px;max-width:85%}.loading-art{display:grid;place-items:center;width:88px;height:112px;border-radius:16px;border:1px solid #d5bb7b88;background:linear-gradient(135deg,#454459,#171f34);box-shadow:inset 0 0 0 5px #d8be7c09,0 12px 32px #0005;font-size:40px;color:#ead09b}.loading-track{width:min(240px,70vw);height:5px;margin:16px 0 12px;background:#ffffff12;border-radius:4px;overflow:hidden}.loading-track i{display:block;height:100%;transform:scaleX(0);transform-origin:left;background:linear-gradient(90deg,#aa8fcb,#f0d49a);transition:transform .16s}#loading-percent{font-size:12px;letter-spacing:1px;color:#d2bf9c;font-variant-numeric:tabular-nums}.loading-actions{display:flex;gap:14px;margin-top:24px}.loading-actions button{background:#d2b77718;border:1px solid #d3b77c55;border-radius:12px;padding:10px 16px;color:#ead8b4;cursor:pointer}.loading-actions button[hidden]{display:none}
+    </style>
+    <div id="app"></div><script type="module" src="/src/bootstrap.ts"></script>
+  </body>
 </html>

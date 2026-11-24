@@ -2,6 +2,7 @@ import './blessing-pack.css';
 import { BLESSINGS } from './rules';
 import { chooseBlessing, type BlessingPackState } from './blessing-choice';
 import { getUniverse, packAppearance, type UniverseTheme } from './themes';
+import type { PrismSound } from './card-sounds';
 
 type BlessingInfo = (typeof BLESSINGS)[number];
 interface PackOptions {
@@ -12,6 +13,8 @@ interface PackOptions {
   requestChoiceAd: () => Promise<boolean>;
   onContinue: () => void;
   soundEnabled: boolean;
+  soundController?: PrismSound;
+  mobileEffects?: boolean;
   theme?: UniverseTheme;
 }
 
@@ -82,7 +85,10 @@ export function mountBlessingPack(root: HTMLElement, options: PackOptions): () =
     if (disposed || event.origin !== location.origin || event.source !== frame.contentWindow || event.data?.channel !== 'planet-blessing') return;
     switch (event.data.type) {
       case 'init-request':
-        send({type: 'init', config: {blessings: definitions, theme: packAppearance(theme, document.baseURI), ribbonOverflow: ribbonBounds(), order: state.order, opened: state.opened, freePick: state.freePick, unlocked: state.unlocked, previous: selected?.id ?? null, sound: options.soundEnabled}});
+        if (frame.contentWindow && options.soundController) {
+          (frame.contentWindow as Window & {__planetPackSound?: PrismSound}).__planetPackSound = options.soundController;
+        }
+        send({type: 'init', config: {blessings: definitions, theme: packAppearance(theme, document.baseURI), ribbonOverflow: ribbonBounds(), order: state.order, opened: state.opened, freePick: state.freePick, unlocked: state.unlocked, previous: selected?.id ?? null, sound: options.soundEnabled, mobileEffects: options.mobileEffects}});
         break;
       case 'loaded':
         mountRibbons();
@@ -116,6 +122,11 @@ export function mountBlessingPack(root: HTMLElement, options: PackOptions): () =
     }
   }
   window.addEventListener('message', onMessage);
+  const unlockAudio = () => options.soundController?.unlock();
+  action.addEventListener('pointerdown', unlockAudio);
+  action.addEventListener('keydown', unlockAudio);
+  ad.addEventListener('pointerdown', unlockAudio);
+  ad.addEventListener('keydown', unlockAudio);
   ad.onclick = async () => {
     if (disposed || state.unlocked || !['choosing', 'selected'].includes(phase)) return;
     setPhase('ad'); action.disabled = true;
@@ -135,5 +146,6 @@ export function mountBlessingPack(root: HTMLElement, options: PackOptions): () =
   };
   return () => {
     disposed = true; ribbonResize.disconnect(); window.removeEventListener('message', onMessage); ribbonOverlay.remove(); frame.remove();
+    options.soundController?.call('setRip', 0);
   };
 }
