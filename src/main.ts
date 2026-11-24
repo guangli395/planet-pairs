@@ -4,6 +4,7 @@ import { UNIVERSES, getUniverse } from './themes';
 import { mountBlessingPack } from './blessing-pack';
 import { restoreBlessingPackState } from './blessing-choice';
 import { createCardSounds } from './card-sounds';
+import { installButtonFeedback } from './button-feedback';
 import { animateCardFlip } from './card-flip';
 import { HiddenSlices, clipCutSegment, packCutLine, type CutBounds } from './hidden-slices';
 import { HiddenPackVisual } from './hidden-pack';
@@ -20,9 +21,10 @@ const previewBlessing = import.meta.env.DEV && (new URLSearchParams(location.sea
 const previewUniverse = import.meta.env.DEV && new URLSearchParams(location.search).has('previewUniverse');
 const previewSettlement = import.meta.env.DEV && new URLSearchParams(location.search).has('previewSettlement');
 const previewOpening = import.meta.env.DEV && new URLSearchParams(location.search).has('previewOpening');
-const store = previewBlessing || previewUniverse || previewSettlement || previewOpening ? freshStore() : loadStore();
+const previewBoard = import.meta.env.DEV && new URLSearchParams(location.search).has('previewBoard');
+const store = previewBlessing || previewUniverse || previewSettlement || previewOpening || previewBoard ? freshStore() : loadStore();
 if (previewUniverse) store.universe = getUniverse(new URLSearchParams(location.search).get('previewUniverse')).id;
-function saveStore(value: Store) { if (!previewBlessing && !previewUniverse && !previewSettlement && !previewOpening) saveGameStore(value); }
+function saveStore(value: Store) { if (!previewBlessing && !previewUniverse && !previewSettlement && !previewOpening && !previewBoard) saveGameStore(value); }
 const openingRuns = new WeakSet<Run>();
 let run: Run | null = null;
 let scene: BoardScene;
@@ -49,10 +51,11 @@ const cardSounds = createCardSounds({
 });
 document.addEventListener('pointerdown', cardSounds.unlock, {capture: true, passive: true});
 document.addEventListener('keydown', cardSounds.unlock, {capture: true});
-if (previewBlessing) {
+installButtonFeedback(document, cardSounds.click, () => store.sound);
+if (import.meta.env.DEV) {
   // The isolated development route records which upstream voice actually ran.
   (window as Window & {__smktSfxHook?: (method: string, args: unknown[]) => void}).__smktSfxHook = (method, args) => {
-    if (!['cardFlip', 'cardHover', 'cardTease', 'grab', 'burst', 'setRip'].includes(method)) return;
+    if (!['click', 'cardFlip', 'cardHover', 'cardTease', 'grab', 'burst', 'setRip'].includes(method)) return;
     if (method === 'setRip' && !(Number(args[0]) > 0)) return;
     app.dataset.cardSound = method; app.dataset.audioState = audio?.state ?? 'uninitialized';
     app.dataset.cardSoundCount = String(Number(app.dataset.cardSoundCount ?? 0) + 1);
@@ -226,6 +229,7 @@ function setup(mode: Mode, stage: number) {
     onContinue: () => { draft!.step = 'lucky'; updatePreparation(); luckySetup(); },
     soundEnabled: store.sound,
     soundController: cardSounds.packSound,
+    onButtonClick: cardSounds.click,
     mobileEffects: import.meta.env.DEV && new URLSearchParams(location.search).has('previewMobileEffects') ? true : undefined,
     theme: universe(),
   });
@@ -863,7 +867,19 @@ function tickEnergy() {
 window.setInterval(tickEnergy, 1000);
 applyUniverse();
 document.addEventListener('visibilitychange', () => { if (document.hidden) { void audio?.suspend(); } else { tickEnergy(); if (store.sound) void audio?.resume(); } });
-if (previewOpening) {
+if (previewBoard) {
+  run = createRun('endless', 1, 'echo', [8]);
+  run.board = [0, 1, 2, 3, 4, 5, 6, 7, 8]; run.drawn = 9; run.remaining = 11; run.started = true;
+  void enterGame().then(() => {
+    $('deal-label').textContent = '预览翻牌';
+    $('deal').onclick = async () => {
+      if (busy) return;
+      setBusy(true);
+      try { for (let slot = 0; slot < 9; slot++) await scene.reveal(slot, slot, () => cardSounds.flip(slot)); }
+      finally { setBusy(false); $('deal-label').textContent = '再次预览翻牌'; }
+    };
+  });
+} else if (previewOpening) {
   const params = new URLSearchParams(location.search);
   const chosenBlessing = BLESSINGS.find(item => item.id === params.get('previewOpening'))?.id ?? 'echo';
   const requestedCards = Number(params.get('previewCards'));

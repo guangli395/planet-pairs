@@ -57,6 +57,17 @@ export function createCardSounds(options: SoundOptions) {
     ready,
     unlock,
     packSound,
+    click() {
+      if (!options.enabled()) return;
+      unlock();
+      const invoke = (engine: PrismSound | null) => {
+        if (!options.enabled()) return;
+        if (!engine) { options.fallback?.(); return; }
+        engine.setProfile?.(.75, false); engine.setMuted(false); engine.unlock();
+        engine.call('click');
+      };
+      if (synth) invoke(synth); else void ready.then(invoke);
+    },
     flip(slot = 4) { play(slot); },
     syncPreference() { synth?.setMuted(!options.enabled()); },
   };

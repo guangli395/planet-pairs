@@ -3,6 +3,7 @@ import { BLESSINGS } from './rules';
 import { chooseBlessing, type BlessingPackState } from './blessing-choice';
 import { getUniverse, packAppearance, type UniverseTheme } from './themes';
 import type { PrismSound } from './card-sounds';
+import { installButtonFeedback } from './button-feedback';
 
 type BlessingInfo = (typeof BLESSINGS)[number];
 interface PackOptions {
@@ -14,6 +15,7 @@ interface PackOptions {
   onContinue: () => void;
   soundEnabled: boolean;
   soundController?: PrismSound;
+  onButtonClick?: () => void;
   mobileEffects?: boolean;
   theme?: UniverseTheme;
 }
@@ -22,6 +24,7 @@ interface PackOptions {
 export function mountBlessingPack(root: HTMLElement, options: PackOptions): () => void {
   let phase: 'loading' | 'sealed' | 'opening' | 'dealing' | 'choosing' | 'flipping' | 'selected' | 'ad' | 'unlocking' | 'error' = 'loading';
   let disposed = false;
+  let disposeButtonFeedback = () => {};
   let selected = options.previous?.info ?? null;
   const state = options.state;
   const theme = options.theme ?? getUniverse('classic');
@@ -91,6 +94,10 @@ export function mountBlessingPack(root: HTMLElement, options: PackOptions): () =
         send({type: 'init', config: {blessings: definitions, theme: packAppearance(theme, document.baseURI), ribbonOverflow: ribbonBounds(), order: state.order, opened: state.opened, freePick: state.freePick, unlocked: state.unlocked, previous: selected?.id ?? null, sound: options.soundEnabled, mobileEffects: options.mobileEffects}});
         break;
       case 'loaded':
+        disposeButtonFeedback();
+        if (frame.contentDocument && options.onButtonClick) {
+          disposeButtonFeedback = installButtonFeedback(frame.contentDocument, options.onButtonClick, () => options.soundController ? !options.soundController.isMuted : options.soundEnabled);
+        }
         mountRibbons();
         if (state.opened) showReady();
         else { setPhase('sealed'); action.disabled = false; action.textContent = '撕开祝福包'; }
@@ -145,7 +152,7 @@ export function mountBlessingPack(root: HTMLElement, options: PackOptions): () =
     else if (phase === 'error') { setPhase('loading'); action.disabled = true; ribbonScene.replaceChildren(); frame.src = frameUrl; }
   };
   return () => {
-    disposed = true; ribbonResize.disconnect(); window.removeEventListener('message', onMessage); ribbonOverlay.remove(); frame.remove();
+    disposed = true; disposeButtonFeedback(); ribbonResize.disconnect(); window.removeEventListener('message', onMessage); ribbonOverlay.remove(); frame.remove();
     options.soundController?.call('setRip', 0);
   };
 }

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { type Run } from './rules';
 import { UNIVERSES, getUniverse, type UniverseTheme } from './themes';
 import { animateCardFlip } from './card-flip';
+import { BOARD_SIZE, CHARACTER_PIXELS, CARD_ART_PIXELS, boardPixels } from './board-resolution';
 
 export class BoardScene extends Phaser.Scene {
   private tiles = new Map<number, Phaser.GameObjects.Container>();
@@ -12,12 +13,24 @@ export class BoardScene extends Phaser.Scene {
   readonly loaded = new Promise<void>(resolve => { this.readyResolve = resolve; });
   constructor() { super('board'); }
   preload() {
-    for (const theme of UNIVERSES) theme.characters.forEach((character, i) => this.load.image(`${theme.id}:character:${i}`, character.image));
+    for (const theme of UNIVERSES) theme.characters.forEach((character, i) => {
+      const key = `${theme.id}:character:${i}`;
+      if (character.image.endsWith('.svg')) this.load.svg(key, character.image, {width: CHARACTER_PIXELS, height: CHARACTER_PIXELS});
+      else this.load.image(key, character.image);
+    });
   }
   create() {
+    this.fitViewport();
     this.backdrop = this.add.graphics();
     this.setTheme(this.theme);
     this.readyResolve();
+  }
+  fitViewport() {
+    // Phaser 4 has no game-level resolution option. Render a larger canvas,
+    // then keep the existing 360-unit board through the camera projection.
+    const pixels = this.scale.width;
+    this.cameras.main.setSize(pixels, pixels).setZoom(pixels / BOARD_SIZE).centerOn(BOARD_SIZE / 2, BOARD_SIZE / 2);
+    this.game.canvas.dataset.logicalSize = String(BOARD_SIZE);
   }
   private key(kind: string, type: number) { return `${this.theme.id}:${kind}:${type}`; }
   setTheme(theme: UniverseTheme) {
@@ -32,8 +45,9 @@ export class BoardScene extends Phaser.Scene {
     }
     for (let i = 0; i < 9; i++) {
       if (this.textures.exists(this.key('front', i))) continue;
-      const texture = this.textures.createCanvas(this.key('front', i), 216, 216)!;
+      const texture = this.textures.createCanvas(this.key('front', i), CARD_ART_PIXELS, CARD_ART_PIXELS)!;
       const ctx = texture.context;
+      ctx.scale(CARD_ART_PIXELS / 216, CARD_ART_PIXELS / 216);
       const gradient = ctx.createLinearGradient(0, 0, 216, 216);
       gradient.addColorStop(0, theme.board.face[0]); gradient.addColorStop(.6, theme.board.face[1]); gradient.addColorStop(1, theme.board.face[2]);
       ctx.fillStyle = theme.board.side; ctx.beginPath(); ctx.roundRect(0, 6, 216, 210, 28); ctx.fill();
@@ -47,7 +61,14 @@ export class BoardScene extends Phaser.Scene {
       }
       const glow = ctx.createRadialGradient(108, 86, 4, 108, 86, 100);
       glow.addColorStop(0, theme.characters[i].color + (gilded ? '24' : theme.palette === 'warm' ? '26' : '80')); glow.addColorStop(1, theme.characters[i].color + '00');
-      ctx.fillStyle = glow; ctx.fillRect(4, 4, 208, 192); texture.refresh();
+      ctx.fillStyle = glow; ctx.fillRect(4, 4, 208, 192);
+      // Composite artwork and its translucent edges once at full resolution.
+      // The settled board and temporary flip layer then use the identical face.
+      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(this.textures.get(this.key('character', i)).getSourceImage() as CanvasImageSource, 14, 4, 188, 188);
+      ctx.font = 'bold 20px Microsoft YaHei, sans-serif'; ctx.fillStyle = theme.board.ink;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(theme.characters[i].name, 108, 186);
+      texture.refresh();
     }
   }
   point(slot: number) { return { x: 60 + (slot % 3) * 120, y: 58 + Math.floor(slot / 3) * 120 }; }
@@ -56,10 +77,6 @@ export class BoardScene extends Phaser.Scene {
     const container = this.add.container(p.x, p.y);
     const bg = this.add.image(0, 0, this.key('front', type)).setDisplaySize(108, 108);
     container.add(bg);
-    container.add(this.add.image(0, -5, this.key('character', type)).setDisplaySize(94, 94));
-    container.add(this.add.text(0, 39, this.theme.characters[type].name, {
-      fontFamily: 'Microsoft YaHei, sans-serif', fontSize: '10px', color: this.theme.board.ink, fontStyle: 'bold',
-    }).setOrigin(.5));
     this.tiles.set(slot, container); return container;
   }
   clear() {
@@ -72,13 +89,8 @@ export class BoardScene extends Phaser.Scene {
   cardArtwork(type: number) {
     const cached = this.artwork.get(type);
     if (cached) return cached;
-    const canvas = document.createElement('canvas'); canvas.width = canvas.height = 216;
-    const ctx = canvas.getContext('2d')!;
-    ctx.drawImage(this.textures.get(this.key('front', type)).getSourceImage() as CanvasImageSource, 0, 0, 216, 216);
-    ctx.drawImage(this.textures.get(this.key('character', type)).getSourceImage() as CanvasImageSource, 14, 4, 188, 188);
-    ctx.font = 'bold 20px Microsoft YaHei, sans-serif'; ctx.fillStyle = this.theme.board.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(this.theme.characters[type].name, 108, 186);
-    const image = canvas.toDataURL('image/png'); this.artwork.set(type, image); return image;
+    const texture = this.textures.get(this.key('front', type)) as Phaser.Textures.CanvasTexture;
+    const image = texture.canvas.toDataURL('image/png'); this.artwork.set(type, image); return image;
   }
   async reveal(slot: number, type: number, onFlip?: () => void) {
     this.tiles.get(slot)?.destroy();
@@ -101,12 +113,24 @@ export class BoardScene extends Phaser.Scene {
 
 export async function createBoard(parent: HTMLElement) {
   const scene = new BoardScene();
+  const previewDpr = import.meta.env.DEV && new URLSearchParams(location.search).has('previewBoard')
+    ? Number(new URLSearchParams(location.search).get('previewBoardDpr')) : 0;
+  const pixels = () => boardPixels(parent.getBoundingClientRect().width, previewDpr || window.devicePixelRatio);
+  const initialPixels = pixels();
   const game = new Phaser.Game({
-    type: Phaser.AUTO, parent, width: 360, height: 360, transparent: true,
-    scene: [scene], render: { antialias: true, roundPixels: false },
+    type: Phaser.AUTO, parent, width: initialPixels, height: initialPixels, transparent: true,
+    scene: [scene], render: { antialias: true, antialiasGL: true, roundPixels: false },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     audio: { noAudio: true }, banner: false,
   });
   await scene.loaded;
+  const resize = () => {
+    const next = pixels();
+    if (game.scale.width !== next) game.scale.setGameSize(next, next);
+    scene.fitViewport();
+  };
+  const observer = new ResizeObserver(resize); observer.observe(parent);
+  window.addEventListener('resize', resize);
+  game.events.once(Phaser.Core.Events.DESTROY, () => { observer.disconnect(); window.removeEventListener('resize', resize); });
   return { game, scene };
 }
