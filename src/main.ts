@@ -274,7 +274,7 @@ function cardSetup() {
     const left = cost === null ? 0 : Math.max(0, cost - draft!.cardAds);
     const label = cost === null ? `补体力广告 ${store.energyAds}/3 解锁` : left ? `观看 ${left} 次广告${store.infinite ? '' : ' · 1 体力'}` : store.infinite ? '今日无限体力开启' : '消耗 1 点体力';
     return `<button class="pack-option tier-${tier}${tier === draft!.cards ? ' selected' : ''}${cost === null ? ' pack-locked' : ''}" data-tier="${tier}" aria-pressed="${tier === draft!.cards}"><span class="pack-tag">${cost === null ? '待解锁' : tier === 20 ? '基础' : tier === 30 ? '今日已解锁' : `${cost} 次广告`}</span><span class="pack-art"><img src="${cardBack()}" alt=""><img src="${cardBack()}" alt=""><img src="${cardBack()}" alt=""></span><strong>${tier}<small> 张</small></strong><span class="pack-cost">${label}</span></button>`;
-  }).join('')}</div><div class="pack-total">${bonus ? `<span>启程赠礼 <b>+20</b></span><strong>本局共 ${total} 张</strong>` : `<span>${blessing(selectedBlessing).name}</span><strong>本局 ${total} 张</strong>`}</div>
+  }).join('')}</div><div class="pack-total">${bonus ? `<span>${blessing('gift').name} <b>+20</b></span><strong>本局共 ${total} 张</strong>` : `<span>${blessing(selectedBlessing).name}</span><strong>本局 ${total} 张</strong>`}</div>
   <button id="pack-start" class="wide-button">${required === null ? `补充体力，解锁 30 张 · ${store.energyAds}/3` : adsLeft ? `再看 ${adsLeft} 次广告 · ${total} 张出发` : `${total} 张出发 · ${store.infinite ? '今日无限体力' : '消耗 1 体力'}`}</button>
   <p class="pack-footnote">${draft.cardAds ? `本次已完成 ${draft.cardAds} 次选牌广告，进度已保留<br>` : ''}选牌与续局广告不计入补体力的 3 次进度</p>`;
   $('setup-back').onclick = () => { draft!.step = 'lucky'; updatePreparation(); luckySetup(); };
@@ -803,7 +803,7 @@ function rankModal(mode: Mode, onClose = closeModal) {
   $('rank-close').onclick = onClose;
 }
 function rulesModal() {
-  modal(`${heading('✦', `${universe().copy.subject}相遇指南`, '翻开卡片，收集属于你的好运')}<div class="rules-list"><p><b>相同就对碰</b><span>全盘两张相同${universe().copy.subject}，收集 2 张，奖励 1 张。</span></p><p><b>横竖三连</b><span>优先消除成行或成列的三张，奖励 2 张；斜线不算。</span></p><p><b>幸运与清台</b><span>翻出幸运${universe().copy.subject}立即 +1；对碰、三连清空棋盘额外 +5。</span></p><p><b>集齐礼</b><span>九格各不相同，全部收走，奖励 5 张；集齐加冕再 +2。此奖励包含清台，不重复领取。</span></p><p><b>两种节奏</b><span>手动每次一张；自动每次一轮，结算后再次点击。</span></p></div><button class="wide-button" id="rules-close">记住了，出发</button>`);
+  modal(`${heading('✦', `${universe().copy.subject}相遇指南`, '翻开卡片，收集属于你的好运')}<div class="rules-list"><p><b>相同就对碰</b><span>全盘两张相同${universe().copy.subject}，收集 2 张，奖励 1 张。</span></p><p><b>横竖三连</b><span>优先消除成行或成列的三张，奖励 2 张；斜线不算。</span></p><p><b>幸运与清台</b><span>翻出幸运${universe().copy.subject}立即 +1；对碰、三连清空棋盘额外 +5。</span></p><p><b>集齐礼</b><span>九格各不相同，全部收走，奖励 5 张；${blessing('clear').name}再 +2。此奖励包含清台，不重复领取。</span></p><p><b>两种节奏</b><span>手动每次一张；自动每次一轮，结算后再次点击。</span></p></div><button class="wide-button" id="rules-close">记住了，出发</button>`);
   $('rules-close').onclick = closeModal;
 }
 function blessingInfoModal() {

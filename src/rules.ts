@@ -1,12 +1,12 @@
 export type Mode = 'stage' | 'endless';
 export type Blessing = 'echo' | 'wish' | 'gift' | 'savings' | 'line' | 'clear';
 export const BLESSINGS: { id: Blessing; name: string; symbol: string; description: string }[] = [
-  { id: 'echo', name: '幸运回响', symbol: '✦', description: '每翻出一张幸运星球，立即获得 2 张奖励卡。' },
-  { id: 'wish', name: '双重心愿', symbol: '❖', description: '选择两种幸运星球，翻出任意一种都奖励 1 张卡。' },
-  { id: 'gift', name: '启程赠礼', symbol: '✧', description: '在所选起始牌数量上，额外获得 20 张卡。' },
-  { id: 'savings', name: '配对积蓄', symbol: '∞', description: '本局每累计 3 次对碰，额外奖励 1 张卡。' },
-  { id: 'line', name: '三连余韵', symbol: '≋', description: '每次横向或竖向三连，额外奖励 1 张卡。' },
-  { id: 'clear', name: '集齐加冕', symbol: '☀', description: '九种星球集齐时全部收走，集齐礼额外奖励 2 张卡，共获得 7 张。' },
+  { id: 'echo', name: '幸运双倍', symbol: '✦', description: '每翻出一张幸运星球，立即获得 2 张奖励卡。' },
+  { id: 'wish', name: '双重幸运', symbol: '❖', description: '选择两种幸运星球，翻出任意一种都奖励 1 张卡。' },
+  { id: 'gift', name: '开局奖励', symbol: '✧', description: '在所选起始牌数量上，额外获得 20 张卡。' },
+  { id: 'savings', name: '对碰三次奖励', symbol: '∞', description: '本局每累计 3 次对碰，额外奖励 1 张卡。' },
+  { id: 'line', name: '三连奖励', symbol: '≋', description: '每次横向或竖向三连，额外奖励 1 张卡。' },
+  { id: 'clear', name: '集齐奖励', symbol: '☀', description: '九种星球集齐时全部收走，集齐礼额外奖励 2 张卡，共获得 7 张。' },
 ];
 export const PLANETS = [
   { name: '薄荷星', color: '#81e6cc' }, { name: '蜜桃星', color: '#ff856f' },
