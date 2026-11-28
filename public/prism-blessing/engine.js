@@ -3,6 +3,7 @@
 import { PACK_BRAND, PACK_THEMES, RARITY_META, MASCOT_CONFIG, CARD_POOL } from './cards-config.js';
 import { createSoundController } from './sound.js';
 import { createOptics } from './optics.js';
+import { LightJetCanvas } from './light-jet-canvas.js';
 
 const $ = (sel) => document.querySelector(sel);
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
@@ -24,7 +25,7 @@ const themeModeBtn = $('#themeModeBtn');
 const themeModeLabel = $('#themeModeLabel');
 const gestureHint = $('#gestureHint');
 const liveStatus = $('#liveStatus');
-const lightJet = $('#lightJet');
+let lightJet = $('#lightJet');
 const jetAnchor = $('#jetAnchor');
 const confettiCanvas = $('#confettiCanvas');
 const ctx2d = confettiCanvas.getContext('2d');
@@ -268,8 +269,9 @@ const packPupils = [...mascotSlot.querySelectorAll('.rig-pupil')];
 
 const preloadedImages = [
   MASCOT_CONFIG.image,
+  window.__blessingInit.theme?.cardBack,
   ...CARD_POOL.flatMap((c) => [c.fullArtImage, c.character?.image].filter(Boolean)),
-].map((src) => {
+].filter(Boolean).map((src) => {
   const img = new Image();
   img.src = src;
   img.decode?.().catch(() => {});
@@ -526,14 +528,14 @@ function updateTearClips(p) {
       ? [[tipX, 0], [100, 0], [100, 100], [0, 100], ...tornPart, [tipX, tipY]]
       : [[0, 0], [tipX, 0], [tipX, tipY], ...tornPart, [100, 100], [0, 100]];
 
-  pouchFaces[0].style.clipPath = polyFromPoints(bodyPoly);
-  pouchFaces[1].style.clipPath = polyFromPoints(mirrorPointsX(bodyPoly));
-  bodyLip.style.clipPath = polyFromPoints(buildLipBand(d > 0 ? [...tornPart, tipVert] : [tipVert, ...tornPart], 1));
+  cachedStyle(pouchFaces[0], 'clip-path', polyFromPoints(bodyPoly));
+  cachedStyle(pouchFaces[1], 'clip-path', polyFromPoints(mirrorPointsX(bodyPoly)));
+  cachedStyle(bodyLip, 'clip-path', polyFromPoints(buildLipBand(d > 0 ? [...tornPart, tipVert] : [tipVert, ...tornPart], 1)));
 
   for (const g of gussetSlices) {
     const edgeX = g.sideSign > 0 ? 100 : 0;
     if (d > 0 ? edgeX <= tipX : edgeX >= tipX) {
-      g.el.style.top = Math.max(g.defaultTop, tearYAt(edgeX) + 1.4).toFixed(2) + '%';
+      cachedStyle(g.el, 'top', Math.max(g.defaultTop, tearYAt(edgeX) + 1.4).toFixed(2) + '%');
     }
   }
 
@@ -568,7 +570,7 @@ function updateTearClips(p) {
   const activeSlice = clamp(Math.floor((d > 0 ? tipX - 1e-6 : tipX) / sliceW), 0, STRIP_SLICES - 1);
   const curlBase = (2.6 + 2.6 * p) * curlTightness;
   const flutter = Math.min(1, Math.abs(tearState.p.v) * 0.4) * 1.6;
-  let matrixChain = '';
+  const matrixChain = new DOMMatrix();
   let totalAngle = 0;
 
   for (let n = 0, k = activeSlice; k >= 0 && k < STRIP_SLICES; n++, k -= d) {
@@ -576,12 +578,14 @@ function updateTearClips(p) {
     const degY = d * (curlBase * (0.4 + 0.3 * n) + Math.sin(clockSec * 16 + n * 0.9) * flutter);
     const degZ = (d * 0.9 * n) / 4;
     totalAngle += degY;
-    matrixChain += `translateX(${hingePx}px) rotateY(${degY.toFixed(2)}deg) rotateZ(${degZ.toFixed(2)}deg) translateX(-${hingePx}px) `;
+    matrixChain.translateSelf(Number(hingePx), 0, 0)
+      .rotateSelf(0, Number(degY.toFixed(2)), 0).rotateSelf(0, 0, Number(degZ.toFixed(2)))
+      .translateSelf(-Number(hingePx), 0, 0);
 
     const seg = stripSegments[k];
-    seg.el.style.transform = matrixChain;
-    seg.frontShade.style.opacity = Math.min(0.5, Math.abs(totalAngle) / 200).toFixed(2);
-    seg.backShade.style.opacity = Math.max(0, 0.34 - Math.abs(totalAngle) / 420).toFixed(2);
+    cachedStyle(seg.el, 'transform', matrixChain.toString());
+    cachedStyle(seg.frontShade, 'opacity', Math.min(0.5, Math.abs(totalAngle) / 200).toFixed(2));
+    cachedStyle(seg.backShade, 'opacity', Math.max(0, 0.34 - Math.abs(totalAngle) / 420).toFixed(2));
   }
 }
 
@@ -603,6 +607,7 @@ let jetReach = 0;
 let jetDrained = false;
 let jetStartY = 62.5;
 let jetRadius0 = 45;
+let jetPainter = null;
 
 const lightenHex = (hex, ratio) =>
   '#' +
@@ -611,6 +616,13 @@ const lightenHex = (hex, ratio) =>
     .join('');
 
 function initLightJet() {
+  if (isCoarsePointer && !jetPainter) {
+    const root = document.createElement('div'); root.id = lightJet.id; root.className = 'light-jet';
+    try {
+      jetPainter = new LightJetCanvas(root);
+      lightJet.replaceWith(root); lightJet = root;
+    } catch { /* Retain the original SVG renderer if Canvas 2D is unavailable. */ }
+  }
   const colorOffset = Math.floor(rand(0, 7));
   const unit = packWidth / 100;
   jetStartY = 62.5 + (((TEAR_MAX_Y - TEAR_BASE_Y) / 100) * packHeight) / unit;
@@ -637,7 +649,7 @@ function initLightJet() {
     };
   });
 
-  lightJet.innerHTML = `<defs>
+  if (!jetPainter) lightJet.innerHTML = `<defs>
     <radialGradient id="jetMote"><stop offset=".2" stop-color="#fff"/><stop offset=".45" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
     ${jetRibbons
       .map((b, j) => {
@@ -664,7 +676,7 @@ function initLightJet() {
   bandPaths = [...lightJet.querySelectorAll('.jet-band')];
   seamPaths = [...lightJet.querySelectorAll('.jet-seam')];
   fadeStops = [...lightJet.querySelectorAll('#jetFadeGrad stop')];
-  jetMotes = [...lightJet.querySelectorAll('.jet-spark')].map((el) => ({
+  jetMotes = (jetPainter ? Array.from({length:10}, () => null) : [...lightJet.querySelectorAll('.jet-spark')]).map((el) => ({
     el,
     bandIdx: -1,
     u: Math.random(),
@@ -685,6 +697,7 @@ function fitLightJetBounds() {
   for (const b of jetRibbons) b.maxLen = jetReach - b.r;
 
   const bbox = { x: 50 - halfSpanW, y: 32.5 - topRoom, width: 2 * halfSpanW, height: topRoom + 60 };
+  if (jetPainter) jetPainter.resize(bbox, unit, window.devicePixelRatio, jetRibbons, jetEdges, jetStartY, lightenHex);
   for (const el of lightJet.querySelectorAll('#jetFadeMask, #jetFadeMask rect, #jetBloom')) {
     for (const [k, val] of Object.entries(bbox)) el.setAttribute(k, val.toFixed(1));
   }
@@ -740,7 +753,8 @@ function stepLightJet(dt) {
       for (let i = iStart; ; i++) {
         const d = Math.min(i * JET_STEP, len);
         const [px, py] = pointAlongEdge(j, d);
-        pts.push(`${snap(px)} ${snap(py)}`);
+        if (jetPainter) pts.push(snap(px), snap(py));
+        else pts.push(`${snap(px)} ${snap(py)}`);
         if (d >= len) break;
       }
     }
@@ -749,11 +763,16 @@ function stepLightJet(dt) {
 
   const slicePts = (edgeObj, len) => edgeObj.pts.slice(0, Math.max(0, Math.ceil(len / JET_STEP) - edgeObj.iStart + 1));
 
-  jetRibbons.forEach((b, j) => {
-    const leftPts = slicePts(sampledEdges[j], b.len);
-    const rightPts = slicePts(sampledEdges[j + 1], b.len);
-    bandPaths[j].setAttribute('d', leftPts.length > 1 && rightPts.length > 1 ? `M${leftPts.join('L')}L${rightPts.slice().reverse().join('L')}Z` : '');
-  });
+  if (jetPainter) {
+    jetPainter.begin();
+    jetRibbons.forEach((b,j) => jetPainter.band(j, sampledEdges[j], sampledEdges[j + 1], b.len, JET_STEP));
+  } else {
+    jetRibbons.forEach((b, j) => {
+      const leftPts = slicePts(sampledEdges[j], b.len);
+      const rightPts = slicePts(sampledEdges[j + 1], b.len);
+      bandPaths[j].setAttribute('d', leftPts.length > 1 && rightPts.length > 1 ? `M${leftPts.join('L')}L${rightPts.slice().reverse().join('L')}Z` : '');
+    });
+  }
 
   seamPaths.forEach((el, j) => {
     el.setAttribute('d', sampledEdges[j].pts.length > 1 ? `M${sampledEdges[j].pts.join('L')}` : '');
@@ -767,7 +786,7 @@ function stepLightJet(dt) {
     if (m.u > 1 || !jetRibbons[m.bandIdx]?.active) {
       if (m.u > 1) m.u -= 1;
       if (!activeIndices.length) {
-        m.el.setAttribute('opacity', '0');
+        m.el?.setAttribute('opacity', '0');
         continue;
       }
       m.bandIdx = activeIndices[Math.floor(rand(0, activeIndices.length))];
@@ -777,10 +796,14 @@ function stepLightJet(dt) {
     const dist = d0 + m.u * (len - d0);
     const [x1, y1] = pointAlongEdge(m.bandIdx, dist);
     const [x2, y2] = pointAlongEdge(m.bandIdx + 1, dist);
-    m.el.setAttribute('cx', (x1 + (x2 - x1) * m.v).toFixed(2));
-    m.el.setAttribute('cy', (y1 + (y2 - y1) * m.v).toFixed(2));
-    m.el.setAttribute('r', (m.radius * (0.6 + m.u * 0.7)).toFixed(2));
-    m.el.setAttribute('opacity', (Math.sin(Math.PI * m.u) * Math.min(1, len / 20)).toFixed(2));
+    const x = (x1 + (x2 - x1) * m.v).toFixed(2), y = (y1 + (y2 - y1) * m.v).toFixed(2);
+    const radius = (m.radius * (0.6 + m.u * 0.7)).toFixed(2);
+    const opacity = (Math.sin(Math.PI * m.u) * Math.min(1, len / 20)).toFixed(2);
+    if (jetPainter) jetPainter.spark(Number(x), Number(y), Number(radius), Number(opacity));
+    else {
+      m.el.setAttribute('cx', x); m.el.setAttribute('cy', y);
+      m.el.setAttribute('r', radius); m.el.setAttribute('opacity', opacity);
+    }
   }
 }
 
@@ -934,8 +957,13 @@ function triggerStageImpact(rarity) {
   if (prefersReducedMotion) return;
   const cls = rarity === 'secret' ? 'impact-secret' : rarity === 'ultra' ? 'impact-ultra' : '';
   if (!cls) return;
+  // Most packs have no existing impact to restart. Avoid forcing layout after
+  // updating every tear polygon at the busiest point of the animation.
+  if (stageEl.classList.contains(cls)) {
+    for (const animation of stageEl.getAnimations()) { animation.currentTime = 0; animation.play(); }
+    return;
+  }
   stageEl.classList.remove('impact-ultra', 'impact-secret');
-  void stageEl.offsetWidth;
   stageEl.classList.add(cls);
 }
 
@@ -1005,6 +1033,7 @@ const smoothStep = (a, b, x) => {
 };
 
 function buildCardBackMarkup() {
+  if (window.__blessingInit.theme?.cardBack) return '<div class="card-back" aria-hidden="true"></div>';
   return (
     `<div class="card-back" aria-hidden="true">` +
     `<svg class="card-back-guilloche" viewBox="0 0 200 280" aria-hidden="true">` +
@@ -1928,8 +1957,9 @@ function tick(nowMs) {
   const paintSurface = !isCoarsePointer || nowMs - lastSurfacePaint >= 50;
   if (paintSurface) lastSurfacePaint = nowMs;
   clockSec += dt;
-  stageEl.dataset.phase = stageState;
-  stageEl.dataset.tearProgress = Math.min(1, tearState.p.x).toFixed(3);
+  if (stageEl.dataset.phase !== stageState) stageEl.dataset.phase = stageState;
+  const tearProgress = Math.min(1, tearState.p.x).toFixed(3);
+  if (stageEl.dataset.tearProgress !== tearProgress) stageEl.dataset.tearProgress = tearProgress;
   pointerShakeEnergy *= Math.exp(-dt * 4.5);
 
   const motionScale = prefersReducedMotion ? 0 : 1;
@@ -2451,7 +2481,7 @@ function restorePack() {
     c.phase='fanned';c.fan=computeFanSlot(c);c.revealed=revealed;c.frontShown=revealed;
     c.flip.x=c.flip.to=revealed ? 0 : 180;
     c.faceEl.setAttribute('aria-hidden',String(!revealed));
-    c.el.classList.add('settled');c.el.classList.toggle('revealed',revealed);c.el.classList.toggle('front-visible',revealed);
+    c.el.classList.add('settled');c.el.classList.toggle('unrevealed',!revealed);c.el.classList.toggle('revealed',revealed);c.el.classList.toggle('front-visible',revealed);
     for(const [key,value] of Object.entries(c.fan))c.pose[key].x=c.pose[key].to=value;
   }
   stageState='spread';selectionReady=true;markSelection(selectedBlessingId);

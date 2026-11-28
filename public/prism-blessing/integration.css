@@ -102,3 +102,8 @@ body[data-mobile-effects='true'] .char-pop .char-body { filter:drop-shadow(0 3px
 .gpu-optics .optic-sweep { position:absolute; inset:0 auto 0 0; width:220%; background:linear-gradient(112deg,transparent 44%,rgba(255,255,255,.36) 44.4%,rgba(255,255,255,.11) 52%,transparent 52.4%,transparent 54%,rgba(255,255,255,.2) 54.3%,rgba(255,255,255,.04) 56.4%,transparent 56.7%); will-change:transform; }
 body[data-mobile-effects='true'] .gpu-optics .optic-sweep-mask { opacity:.75; }
 .pack > .pouch-face { contain:paint; will-change:clip-path; }
+/* These faces are fully occluded until the flip starts; avoid allocating their
+   many composited layers during the simultaneous six-card ejection. */
+body[data-mobile-effects='true'] .card.unrevealed > .card-face,
+body[data-mobile-effects='true'] .card.unrevealed > .char-pop { display:none; }
+.jet-raster { position:absolute; display:block; pointer-events:none; }

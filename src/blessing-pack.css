@@ -12,6 +12,7 @@
 .bp-ribbon-scene { position:absolute; inset:0; transform-style:preserve-3d; pointer-events:none; }
 .bp-ribbon-overlay .jet-anchor { position:absolute; left:50%; top:50%; width:var(--ribbon-pack-w); height:var(--ribbon-pack-h); margin:calc(var(--ribbon-pack-h) / -2) 0 0 calc(var(--ribbon-pack-w) / -2); transform-style:preserve-3d; pointer-events:none; }
 .bp-ribbon-overlay .light-jet { position:absolute; left:0; top:calc(10.5% - var(--ribbon-pack-w) * .6); width:100%; height:calc(var(--ribbon-pack-w) * .76); overflow:visible; opacity:0; transform:translateZ(-6px); pointer-events:none; }
+.jet-raster { position:absolute; display:block; pointer-events:none; }
 .bp-result { position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; min-height:74px; padding:8px 4px 18px; }
 .bp-result h2 { font-family:'STSong','SimSun',serif; color:var(--bp-cream); font-size:21px; letter-spacing:2px; font-weight:600; margin:0 0 6px; }
 .bp-result p { color:var(--bp-muted); font-size:12px; line-height:1.8; margin:0 auto; max-width:300px; }
