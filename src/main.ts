@@ -34,7 +34,6 @@ function loadBoardModule() {
   return boardModule ??= import('./board').catch(error => { boardModule = undefined; throw error; });
 }
 let busy = false;
-let automatic = true;
 let display: Run | null = null;
 let setupMode: Mode = 'stage';
 let setupStage = 1;
@@ -102,7 +101,7 @@ app.innerHTML = `<div class="ambient ambient-a"></div><div class="ambient ambien
    <div class="board-frame"><span class="board-jewel">✧</span><div id="phaser-board" aria-label="九宫格星球棋盘"></div></div>
    <div class="game-bottom"><div class="tiny-deck"><img data-theme-back src="${cardBack()}" alt=""><img data-theme-back src="${cardBack()}" alt=""><img data-theme-back src="${cardBack()}" alt=""></div>
     <button id="deal" class="deal-button"><span id="remaining">剩余 20 张</span><strong id="deal-label">发牌</strong></button>
-    <div class="mode-switch" role="group" aria-label="发牌模式"><button id="manual">手动</button><button id="automatic" class="active">自动</button></div><p id="mode-hint">点一次完成一轮，结算后再次发牌</p>
+    <p>点一次完成一轮，结算后再次发牌</p>
    </div>
    <span id="blessing-announcement" class="sr-only" role="status" aria-live="polite"></span>
   </section>
@@ -359,7 +358,6 @@ function updateHud(state: Run) {
 function setBusy(value: boolean) {
   busy = value; $<HTMLButtonElement>('deal').disabled = value || run?.status !== 'ready';
   $<HTMLButtonElement>('game-back').disabled = value;
-  $<HTMLButtonElement>('manual').disabled = value; $<HTMLButtonElement>('automatic').disabled = value;
   $('game-screen').querySelectorAll<HTMLButtonElement>('[data-energy]').forEach(b => { b.disabled = value; });
   $('deal-label').textContent = value ? `${universe().copy.subject}相遇中…` : '发牌';
 }
@@ -705,7 +703,7 @@ async function deal() {
   refreshDay(store);
   setBusy(true);
   try {
-    do {
+    while (run.status === 'ready') {
       const event = drawOne(run);
       const hiddenChance = HIDDEN_CHANCE / (2 ** (run.hiddenCount ?? 0));
       if (event.kind === 'draw' && event.slots[0] >= 0 && !run.pendingHidden && ((DEBUG_HIDDEN && !debugHiddenUsed) || Math.random() < hiddenChance)) {
@@ -730,7 +728,7 @@ async function deal() {
         // pack slot after its reward animation finishes.
         updateHud(run); break;
       }
-    } while (automatic);
+    }
     record();
   } catch (error) {
     console.error(error);
@@ -746,7 +744,7 @@ async function deal() {
     endModal();
   } else {
     setBusy(false);
-    message(automatic ? '本轮已完成，点击发牌继续' : `继续翻开下一张${universe().copy.subject}卡`);
+    message('本轮已完成，点击发牌继续');
   }
 }
 function record() {
@@ -757,14 +755,12 @@ function record() {
 }
 function clearCurrentSession() {
   run = null; display = null; draft = null; selectedBlessing = null; chosen = [];
-  automatic = true; setupStage = 1; busy = false;
+  setupStage = 1; busy = false;
   if (scene) scene.clear();
   hiddenTeaser?.element.remove(); hiddenTeaser = null;
   $('score-value').innerHTML = '0 <i>/ 50</i>'; $('progress-fill').style.width = '0%';
   $('remaining').textContent = '剩余 0 张';
   $('blessing-announcement').textContent = '';
-  $('automatic').classList.add('active'); $('manual').classList.remove('active');
-  $('mode-hint').textContent = '点一次完成一轮，结算后再次点击';
 }
 function confirmEndRun() {
   if (busy) return;
@@ -803,7 +799,7 @@ function rankModal(mode: Mode, onClose = closeModal) {
   $('rank-close').onclick = onClose;
 }
 function rulesModal() {
-  modal(`${heading('✦', `${universe().copy.subject}相遇指南`, '翻开卡片，收集属于你的好运')}<div class="rules-list"><p><b>相同就对碰</b><span>全盘两张相同${universe().copy.subject}，收集 2 张，奖励 1 张。</span></p><p><b>横竖三连</b><span>优先消除成行或成列的三张，奖励 2 张；斜线不算。</span></p><p><b>幸运与清台</b><span>翻出幸运${universe().copy.subject}立即 +1；对碰、三连清空棋盘额外 +5。</span></p><p><b>集齐礼</b><span>九格各不相同，全部收走，奖励 5 张；${blessing('clear').name}再 +2。此奖励包含清台，不重复领取。</span></p><p><b>两种节奏</b><span>手动每次一张；自动每次一轮，结算后再次点击。</span></p></div><button class="wide-button" id="rules-close">记住了，出发</button>`);
+  modal(`${heading('✦', `${universe().copy.subject}相遇指南`, '翻开卡片，收集属于你的好运')}<div class="rules-list"><p><b>相同就对碰</b><span>全盘两张相同${universe().copy.subject}，收集 2 张，奖励 1 张。</span></p><p><b>横竖三连</b><span>优先消除成行或成列的三张，奖励 2 张；斜线不算。</span></p><p><b>幸运与清台</b><span>翻出幸运${universe().copy.subject}立即 +1；对碰、三连清空棋盘额外 +5。</span></p><p><b>集齐礼</b><span>九格各不相同，全部收走，奖励 5 张；${blessing('clear').name}再 +2。此奖励包含清台，不重复领取。</span></p><p><b>自动发牌</b><span>点击一次，自动完成一轮；结算后再次点击发牌。</span></p></div><button class="wide-button" id="rules-close">记住了，出发</button>`);
   $('rules-close').onclick = closeModal;
 }
 function blessingInfoModal() {
@@ -832,8 +828,6 @@ async function withAdReward(placement: Parameters<typeof requestAdReward>[0], on
   await onReward();
 }
 $('deal').onclick = () => void deal(); $('game-back').onclick = pauseModal;
-$('manual').onclick = () => { automatic = false; $('manual').classList.add('active'); $('automatic').classList.remove('active'); $('mode-hint').textContent = '每点一次发一张，满格后自动结算'; };
-$('automatic').onclick = () => { automatic = true; $('automatic').classList.add('active'); $('manual').classList.remove('active'); $('mode-hint').textContent = '点一次完成一轮，结算后再次发牌'; };
 $('blessing-badge').onclick = () => { if (run) toast(blessing(run.blessing).description); };
 function updateSoundUI() {
   cardSounds.syncPreference();
