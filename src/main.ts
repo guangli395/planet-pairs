@@ -5,7 +5,6 @@ import { mountBlessingPack } from './blessing-pack';
 import { restoreBlessingPackState } from './blessing-choice';
 import { createCardSounds } from './card-sounds';
 import { installButtonFeedback } from './button-feedback';
-import { animateCardFlip } from './card-flip';
 import { HiddenSlices, clipCutSegment, packCutLine, type CutBounds } from './hidden-slices';
 import { HiddenPackVisual } from './hidden-pack';
 import { BLESSINGS, PLANETS, createRun, drawOne, settle, needsSettlement, continueRun, type Mode, type Blessing, type Run, type GameEvent } from './rules';
@@ -22,9 +21,10 @@ const previewUniverse = import.meta.env.DEV && new URLSearchParams(location.sear
 const previewSettlement = import.meta.env.DEV && new URLSearchParams(location.search).has('previewSettlement');
 const previewOpening = import.meta.env.DEV && new URLSearchParams(location.search).has('previewOpening');
 const previewBoard = import.meta.env.DEV && new URLSearchParams(location.search).has('previewBoard');
-const store = previewBlessing || previewUniverse || previewSettlement || previewOpening || previewBoard ? freshStore() : loadStore();
+const previewCollection = import.meta.env.DEV && new URLSearchParams(location.search).has('previewCollection');
+const store = previewBlessing || previewUniverse || previewSettlement || previewOpening || previewBoard || previewCollection ? freshStore() : loadStore();
 if (previewUniverse) store.universe = getUniverse(new URLSearchParams(location.search).get('previewUniverse')).id;
-function saveStore(value: Store) { if (!previewBlessing && !previewUniverse && !previewSettlement && !previewOpening && !previewBoard) saveGameStore(value); }
+function saveStore(value: Store) { if (!previewBlessing && !previewUniverse && !previewSettlement && !previewOpening && !previewBoard && !previewCollection) saveGameStore(value); }
 const openingRuns = new WeakSet<Run>();
 let run: Run | null = null;
 let scene: BoardScene;
@@ -98,7 +98,7 @@ app.innerHTML = `<div class="ambient ambient-a"></div><div class="ambient ambien
    <div class="game-scenery"><div class="scenery-orbit"></div><img data-theme-hero src="${asset(universe().hero)}" alt="" class="scenery-planet"><span class="tiny-star one">✦</span><span class="tiny-star two">✧</span><span class="tiny-star three">✦</span><p id="stage-kicker">第一站</p><h1 id="stage-title">第 1 关</h1></div>
    <div class="score-area" id="score-target"><div class="score-label"><span id="score-name">收集进度</span><strong id="score-value">0 <i>/ 50</i></strong></div><div class="progress-track" id="progress-track"><div id="progress-fill"></div></div><small id="best-label" hidden>本局没有目标限制</small></div>
    <div class="run-badges"><div id="lucky-badge"></div><button id="blessing-badge"></button></div>
-   <div class="event-lane"><span id="event-message" aria-live="polite">让星球相遇，让好运发生</span><div id="bonus-card" hidden></div></div>
+   <div class="event-lane"><span id="event-message" aria-live="polite">让星球相遇，让好运发生</span></div>
    <div class="board-frame"><span class="board-jewel">✧</span><div id="phaser-board" aria-label="九宫格星球棋盘"></div></div>
    <div class="game-bottom"><div class="tiny-deck"><img data-theme-back src="${cardBack()}" alt=""><img data-theme-back src="${cardBack()}" alt=""><img data-theme-back src="${cardBack()}" alt=""></div>
     <button id="deal" class="deal-button"><span id="remaining">剩余 20 张</span><strong id="deal-label">发牌</strong></button>
@@ -369,7 +369,6 @@ function message(text: string) {
 }
 const delay = (ms: number) => new Promise<void>(r => window.setTimeout(r, ms));
 function slotPoint(slot: number) {
-  if (slot < 0) { const b = $('bonus-card').getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; }
   const rect = $('phaser-board').querySelector('canvas')!.getBoundingClientRect();
   return { x: rect.x + (60 + slot % 3 * 120) / 360 * rect.width, y: rect.y + (58 + Math.floor(slot / 3) * 120) / 360 * rect.height };
 }
@@ -620,7 +619,7 @@ async function materializeRewardCard(origin: { x: number; y: number }) {
   layer.remove();
 }
 function triggerEffect(effect: RewardEffect) {
-  if (effect.kind !== 'settle') beep(effect.kind === 'clear' ? 'blessing-clear' : 'blessing');
+  if (effect.kind !== 'settle') beep(effect.kind === 'clear' || effect.kind === 'collection' ? 'blessing-clear' : 'blessing');
   return showRewardEffect(effect);
 }
 async function returnCards(count: number, label: string, origin?: { x: number; y: number }, sound = true, onArrival?: () => void, options: {opening?: boolean} = {}) {
@@ -647,14 +646,8 @@ async function returnCards(count: number, label: string, origin?: { x: number; y
 }
 async function playEvent(event: GameEvent, settlement?: SettlementPlayback<Run>) {
   if (event.kind === 'draw') {
-    const slot = event.slots[0]; message(slot >= 0 ? `${universe().copy.subject}正在抵达…` : event.label);
-    if (slot >= 0) await dealCard(slot, event.cards[0], !event.hidden);
-    else {
-      const type = event.cards[0], front = scene.cardArtwork(type);
-      $('bonus-card').hidden = false; $('bonus-card').innerHTML = `<img src="${cardBack()}" alt="">`;
-      await animateCardFlip($('bonus-card').getBoundingClientRect(), front, universe().characters[type].color, () => cardSounds.flip(-1), cardBack());
-      $('bonus-card').innerHTML = `<img src="${front}" alt="免费翻开的${universe().characters[type].name}">`;
-    }
+    const slot = event.slots[0]; message(`${universe().copy.subject}正在抵达…`);
+    await dealCard(slot, event.cards[0], !event.hidden);
     message(event.label);
     const before = structuredClone(event.state); before.remaining -= event.reward;
     if (settlement) settlement.show(before); else updateHud(before);
@@ -676,16 +669,17 @@ async function playEvent(event: GameEvent, settlement?: SettlementPlayback<Run>)
     if (settlement) settlement.show(event.state); else updateHud(event.state);
     return;
   }
-  if (event.kind === 'remove') {
-    message(`${event.label}！收集 +${event.cards.length}`); beep(event.label.startsWith('三连') ? 'triple' : 'pair');
+  if (event.kind === 'remove' || event.kind === 'collection') {
+    const collection = event.kind === 'collection';
+    message(collection ? `九种${universe().copy.subject}集齐！全部收走` : `${event.label}！收集 +${event.cards.length}`);
+    if (!collection) beep(event.label.startsWith('三连') ? 'triple' : 'pair');
     await scene.highlight(event.slots);
     const rewardOrigin = rewardPoint();
     const playback = settlement ?? new SettlementPlayback(event.state, updateHud);
-    playback.track(triggerEffect({ blessing: event.blessingReward ? event.state.blessing : null, amount: event.reward, kind: 'settle', title: event.label.split(' · ')[0] }));
+    playback.track(triggerEffect({ blessing: event.blessingReward ? event.state.blessing : null, amount: event.reward, kind: collection ? 'collection' : 'settle', title: event.label.split(' · ')[0] }));
     const points = event.slots.map(slotPoint); scene.hide(event.slots);
     // Only collection blocks the next group. Reward flights continue beside it.
-    await Promise.all(points.map((p, i) => fly(p, $('score-target'), event.cards[i], i)));
-    $('bonus-card').hidden = true;
+    await Promise.all(points.map((p, i) => fly(p, $('score-target'), event.cards[i], i, !collection)));
     playback.returnCards(event.state, event.reward, onArrival => returnCards(event.reward, event.label, rewardOrigin, true, onArrival));
     if (!settlement) await playback.finish();
     return;
@@ -693,7 +687,6 @@ async function playEvent(event: GameEvent, settlement?: SettlementPlayback<Run>)
   message(universe().copy.clear);
   const rewardOrigin = rewardPoint();
   const playback = settlement ?? new SettlementPlayback(event.state, updateHud);
-  if (event.blessingReward) playback.track(triggerEffect({ blessing: event.state.blessing, amount: event.blessingReward, kind: 'clear' }));
   playback.returnCards(event.state, event.reward, onArrival => returnCards(event.reward, event.label, rewardOrigin, true, onArrival));
   if (!settlement) await playback.finish();
 }
@@ -767,7 +760,6 @@ function clearCurrentSession() {
   automatic = true; setupStage = 1; busy = false;
   if (scene) scene.clear();
   hiddenTeaser?.element.remove(); hiddenTeaser = null;
-  $('bonus-card').hidden = true; $('bonus-card').innerHTML = '';
   $('score-value').innerHTML = '0 <i>/ 50</i>'; $('progress-fill').style.width = '0%';
   $('remaining').textContent = '剩余 0 张';
   $('blessing-announcement').textContent = '';
@@ -811,7 +803,7 @@ function rankModal(mode: Mode, onClose = closeModal) {
   $('rank-close').onclick = onClose;
 }
 function rulesModal() {
-  modal(`${heading('✦', `${universe().copy.subject}相遇指南`, '翻开卡片，收集属于你的好运')}<div class="rules-list"><p><b>相同就对碰</b><span>全盘两张相同${universe().copy.subject}，收集 2 张，奖励 1 张。</span></p><p><b>横竖三连</b><span>优先消除成行或成列的三张，奖励 2 张；斜线不算。</span></p><p><b>幸运与清台</b><span>翻出幸运${universe().copy.subject}立即 +1；清空棋盘额外 +5。</span></p><p><b>全家福</b><span>九种${universe().copy.subject}齐聚，免费加翻一张并对碰。</span></p><p><b>两种节奏</b><span>手动每次一张；自动每次一轮，结算后再次点击。</span></p></div><button class="wide-button" id="rules-close">记住了，出发</button>`);
+  modal(`${heading('✦', `${universe().copy.subject}相遇指南`, '翻开卡片，收集属于你的好运')}<div class="rules-list"><p><b>相同就对碰</b><span>全盘两张相同${universe().copy.subject}，收集 2 张，奖励 1 张。</span></p><p><b>横竖三连</b><span>优先消除成行或成列的三张，奖励 2 张；斜线不算。</span></p><p><b>幸运与清台</b><span>翻出幸运${universe().copy.subject}立即 +1；对碰、三连清空棋盘额外 +5。</span></p><p><b>集齐礼</b><span>九格各不相同，全部收走，奖励 5 张；集齐加冕再 +2。此奖励包含清台，不重复领取。</span></p><p><b>两种节奏</b><span>手动每次一张；自动每次一轮，结算后再次点击。</span></p></div><button class="wide-button" id="rules-close">记住了，出发</button>`);
   $('rules-close').onclick = closeModal;
 }
 function blessingInfoModal() {
@@ -867,7 +859,24 @@ function tickEnergy() {
 window.setInterval(tickEnergy, 1000);
 applyUniverse();
 document.addEventListener('visibilitychange', () => { if (document.hidden) { void audio?.suspend(); } else { tickEnergy(); if (store.sound) void audio?.resume(); } });
-if (previewBoard) {
+if (previewCollection) {
+  const params = new URLSearchParams(location.search);
+  const fixture = () => {
+    run = createRun(params.has('collectionWin') ? 'stage' : 'endless', 1, params.get('previewCollection') === 'clear' ? 'clear' : 'echo', [8]);
+    run.board = [0, 1, 2, 3, 4, 5, 6, 7, 8]; run.drawn = 9; run.remaining = 11; run.started = true;
+    if (params.has('collectionWin')) { run.score = 45; run.drawn += 45; }
+  };
+  fixture();
+  void enterGame().then(() => {
+    $('deal-label').textContent = '预览集齐礼';
+    $('deal').onclick = async () => {
+      if (busy) return;
+      fixture(); scene.render(run!); updateHud(run!); setBusy(true);
+      try { await playSettlement(settle(run!)); }
+      finally { updateHud(run!); setBusy(false); $('deal-label').textContent = '再次预览集齐礼'; }
+    };
+  });
+} else if (previewBoard) {
   run = createRun('endless', 1, 'echo', [8]);
   run.board = [0, 1, 2, 3, 4, 5, 6, 7, 8]; run.drawn = 9; run.remaining = 11; run.started = true;
   void enterGame().then(() => {

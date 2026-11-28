@@ -34,7 +34,7 @@ for (const scenario of scenarios) {
       const run = createRun('endless', 1, b.id, lucky, scenario.cards);
       let steps = 0;
       while (run.status === 'ready' && steps++ < 10000) {
-        if (needsSettlement(run)) settle(run, sample); else drawOne(run, sample);
+        if (needsSettlement(run)) settle(run); else drawOne(run, sample);
       }
       if (run.status !== 'exhausted') throw new Error('Run did not finish');
       scores.push(run.score);

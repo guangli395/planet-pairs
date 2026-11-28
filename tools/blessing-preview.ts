@@ -36,9 +36,11 @@ document.querySelectorAll<HTMLButtonElement>('[data-effect]').forEach(button => 
   } else {
     if (id === 'savings') { run.pairs = 2; run.board = [1, 1, 2, 3, 4, 5, 6, 7, 8]; }
     if (id === 'line') run.board = [1, 1, 1, 2, 3, 4, 5, 6, 7];
-    if (id === 'clear') { run.remaining = 0; run.board = [1, 1, null, null, null, null, null, null, null]; }
+    if (id === 'clear') run.board = [0, 1, 2, 3, 4, 5, 6, 7, 8];
     event = settle(run).find(e => e.blessingReward);
-    effect = { blessing: id, amount: event!.blessingReward!, kind: id === 'clear' ? 'clear' : 'bonus' };
+    effect = id === 'clear'
+      ? { blessing: id, amount: event!.reward, kind: 'collection', title: '集齐礼' }
+      : { blessing: id, amount: event!.blessingReward!, kind: 'bonus' };
   }
   scene.render(run);
   if (effect.kind === 'lucky') {

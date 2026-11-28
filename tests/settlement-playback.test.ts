@@ -61,6 +61,27 @@ test('triple, three pairs and a clear preserve every reward when flights finish 
   assert.equal(run.remaining, 22);
 });
 
+test('collection score lands together while its five or seven reward cards arrive individually', async () => {
+  for (const blessing of ['echo', 'clear'] as const) {
+    const run = createRun('endless', 1, blessing, [8]);
+    run.board = [0,1,2,3,4,5,6,7,8]; run.remaining = 11; run.drawn = 9;
+    const frames: Run[] = [];
+    const playback = new SettlementPlayback(run, state => frames.push(state));
+    const [event] = settle(run), flight = deferred();
+    let arrive!: () => void;
+    playback.returnCards(event.state, event.reward, onArrival => { arrive = onArrival; return flight.promise; });
+    assert.equal(frames.at(-1)!.remaining, 11); assert.equal(frames.at(-1)!.score, 9);
+    assert(frames.at(-1)!.board.every(card => card === null));
+    for (let count = 1; count <= event.reward; count++) {
+      arrive();
+      assert.equal(frames.at(-1)!.remaining, 11 + count); assert.equal(frames.at(-1)!.score, 9);
+    }
+    arrive(); // Extra animation completion cannot grant an eighth reward card.
+    flight.resolve(); await playback.finish();
+    assert.deepEqual(frames.at(-1), run);
+  }
+});
+
 test('a failed animation is observed immediately but recovery waits for the other flights', async () => {
   const playback = new SettlementPlayback({ remaining: 10 }, () => {});
   const failed = deferred(), flying = deferred();

@@ -6,7 +6,7 @@ export const BLESSINGS: { id: Blessing; name: string; symbol: string; descriptio
   { id: 'gift', name: '启程赠礼', symbol: '✧', description: '在所选起始牌数量上，额外获得 20 张卡。' },
   { id: 'savings', name: '配对积蓄', symbol: '∞', description: '本局每累计 3 次对碰，额外奖励 1 张卡。' },
   { id: 'line', name: '三连余韵', symbol: '≋', description: '每次横向或竖向三连，额外奖励 1 张卡。' },
-  { id: 'clear', name: '清场礼赞', symbol: '☀', description: '每次清空棋盘，额外奖励 2 张卡，共获得 7 张。' },
+  { id: 'clear', name: '集齐加冕', symbol: '☀', description: '九种星球集齐时全部收走，集齐礼额外奖励 2 张卡，共获得 7 张。' },
 ];
 export const PLANETS = [
   { name: '薄荷星', color: '#81e6cc' }, { name: '蜜桃星', color: '#ff856f' },
@@ -23,8 +23,8 @@ export interface Run {
   status: 'ready' | 'won' | 'exhausted';
 }
 export interface GameEvent {
-  kind: 'draw' | 'remove' | 'clear'; slots: number[]; cards: number[];
-  reward: number; luckyReward?: number; blessingReward?: number; hidden?: boolean; label: string; state: Run;
+  kind: 'draw' | 'remove' | 'clear' | 'collection'; slots: number[]; cards: number[];
+  reward: number; blessingReward?: number; hidden?: boolean; label: string; state: Run;
 }
 export const snapshot = (run: Run): Run => structuredClone(run);
 export function createRun(mode: Mode, stage: number, blessing: Blessing, lucky: number[], baseCards = 20): Run {
@@ -56,11 +56,11 @@ export function drawOne(run: Run, rng: () => number = Math.random): GameEvent {
 export function needsSettlement(run: Run): boolean {
   return run.status === 'ready' && (run.remaining === 0 || !run.board.includes(null));
 }
-export function settle(run: Run, rng: () => number = Math.random): GameEvent[] {
+export function settle(run: Run): GameEvent[] {
   if (!needsSettlement(run)) return [];
   const events: GameEvent[] = [];
   let removed = false;
-  const remove = (slots: number[], cards: number[], triple: boolean, luckyReward = 0) => {
+  const remove = (slots: number[], cards: number[], triple: boolean) => {
     let reward = triple ? 2 : 1;
     let label = triple ? '三连' : '对碰';
     if (triple) {
@@ -73,7 +73,7 @@ export function settle(run: Run, rng: () => number = Math.random): GameEvent[] {
     slots.filter(s => s >= 0).forEach(s => { run.board[s] = null; });
     run.remaining += reward; run.score += cards.length; removed = true;
     if (run.mode === 'stage' && run.score >= run.target) run.status = 'won';
-    events.push({ kind: 'remove', slots, cards, reward, luckyReward, blessingReward: reward - (triple ? 2 : 1) || undefined, label, state: snapshot(run) });
+    events.push({ kind: 'remove', slots, cards, reward, blessingReward: reward - (triple ? 2 : 1) || undefined, label, state: snapshot(run) });
   };
   const lines = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8]];
   for (const line of lines) {
@@ -89,20 +89,21 @@ export function settle(run: Run, rng: () => number = Math.random): GameEvent[] {
     }
   }
   if (!run.board.includes(null)) {
-    const bonus = randomPlanet(run.lucky, rng);
-    const luckyReward = run.lucky.includes(bonus) ? (run.blessing === 'echo' ? 2 : 1) : 0;
-    run.remaining += luckyReward; run.drawn++;
-    const blessingReward = luckyReward && (run.blessing === 'echo' || run.blessing === 'wish') ? luckyReward : undefined;
-    events.push({ kind: 'draw', slots: [-1], cards: [bonus], reward: luckyReward, blessingReward, label: '全家福 · 免费加翻', state: snapshot(run) });
-    remove([-1, run.board.indexOf(bonus)], [bonus, bonus], false);
-    if (run.status === 'won') return events;
-  }
-  if (removed && run.board.every(v => v === null)) {
+    // After triples and pairs, a full board necessarily contains all nine types.
+    // Collect the existing cards once, without drawing or counting a new pair.
+    const slots = run.board.map((_, slot) => slot);
+    const cards = run.board.map(card => card!);
     const reward = run.blessing === 'clear' ? 7 : 5;
-    run.remaining += reward;
-    events.push({ kind: 'clear', slots: [], cards: [], reward, blessingReward: reward - 5 || undefined, label: '清台' + (reward === 7 ? ' · 祝福' : ''), state: snapshot(run) });
+    run.board = Array(9).fill(null);
+    run.remaining += reward; run.score += cards.length;
+    if (run.mode === 'stage' && run.score >= run.target) run.status = 'won';
+    events.push({ kind: 'collection', slots, cards, reward, blessingReward: reward - 5 || undefined, label: '集齐礼', state: snapshot(run) });
+  } else if (removed && run.board.every(v => v === null)) {
+    // Collection already includes its clear reward; ordinary clears stay +5.
+    run.remaining += 5;
+    events.push({ kind: 'clear', slots: [], cards: [], reward: 5, label: '清台', state: snapshot(run) });
   }
-  run.status = run.remaining > 0 ? 'ready' : 'exhausted';
+  if (run.status !== 'won') run.status = run.remaining > 0 ? 'ready' : 'exhausted';
   if (events.length) events[events.length - 1].state = snapshot(run);
   return events;
 }

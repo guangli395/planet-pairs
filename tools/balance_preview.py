@@ -1,4 +1,7 @@
-"""Design-only Monte Carlo estimate, not the production game implementation.
+"""Historical 2026-11-24 estimate, not the current production rules.
+
+The family redraw and clear blessing below were replaced by collection rewards
+on 2026-11-28. Use the TypeScript rules for new balance experiments.
 
 Assumptions: independent weighted draws, fixed empty-slot order, six blessings,
 rows before columns, full-board matching or final matching on exhaustion.

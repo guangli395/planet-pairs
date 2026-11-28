@@ -3,7 +3,7 @@ import { BLESSINGS, type Blessing } from './rules';
 export interface RewardEffect {
   blessing: Blessing | null;
   amount: number;
-  kind: 'lucky' | 'bonus' | 'clear' | 'opening' | 'settle';
+  kind: 'lucky' | 'bonus' | 'clear' | 'opening' | 'settle' | 'collection';
   title?: string;
   origin?: { x: number; y: number };
 }
@@ -14,9 +14,10 @@ export async function showRewardEffect(effect: RewardEffect): Promise<void> {
   const rect = board.getBoundingClientRect();
   const info = BLESSINGS.find(b => b.id === effect.blessing);
   const lucky = effect.kind === 'lucky';
-  const strong = effect.kind === 'clear';
+  const strong = effect.kind === 'clear' || effect.kind === 'collection';
+  const extra = effect.kind === 'bonus' || effect.kind === 'clear';
   const settle = effect.kind === 'settle';
-  const highlight = lucky || settle || effect.kind === 'bonus' || effect.kind === 'clear' || effect.kind === 'opening';
+  const highlight = lucky || settle || effect.kind === 'bonus' || strong || effect.kind === 'opening';
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   // Settlement callouts finish with collection, before the next group arrives.
   const duration = settle ? (reduced ? 200 : 480) : reduced ? (highlight ? 520 : 350) : (highlight ? 1000 : 620);
@@ -25,7 +26,7 @@ export async function showRewardEffect(effect: RewardEffect): Promise<void> {
   layer.setAttribute('aria-hidden', 'true');
   const title = effect.title ?? info?.name ?? '幸运降临';
   const detail = info && effect.title ? `${info.name} · ` : '';
-  layer.innerHTML = `<div class="blessing-copy"><span class="blessing-symbol">${info?.symbol ?? (settle ? '✦' : '✧')}</span><strong>${title}</strong><small>${detail}${effect.kind === 'bonus' || strong ? '额外 ' : ''}+${effect.amount} 张</small></div>`;
+  layer.innerHTML = `<div class="blessing-copy"><span class="blessing-symbol">${info?.symbol ?? (strong ? '☀' : settle ? '✦' : '✧')}</span><strong>${title}</strong><small>${detail}${extra ? '额外 ' : ''}+${effect.amount} 张</small></div>`;
   const copy = layer.querySelector<HTMLElement>('.blessing-copy')!;
   const center = { x: rect.width / 2, y: rect.height / 2 };
   const origin = effect.origin ? { x: effect.origin.x - rect.x, y: effect.origin.y - rect.y } : center;
@@ -91,7 +92,7 @@ export async function showRewardEffect(effect: RewardEffect): Promise<void> {
     }
   }
   const live = document.getElementById('blessing-announcement');
-  if (live) live.textContent = `${title}，${effect.kind === 'bonus' || strong ? '额外' : ''}获得 ${effect.amount} 张卡`;
+  if (live) live.textContent = `${title}，${extra ? '额外' : ''}获得 ${effect.amount} 张卡`;
   try { await Promise.all(animations.map(a => a.finished)); }
   catch { /* A cancelled visual never changes the already computed reward. */ }
   finally { animations.forEach(a => a.cancel()); layer.remove(); }
